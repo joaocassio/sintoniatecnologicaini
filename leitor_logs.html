@@ -1,128 +1,171 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classificação de Times Free Fire</title>
+    <title>Classificação de Equipes</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
         }
+        table, th, td {
+            border: 1px solid black;
+        }
         th, td {
             padding: 8px;
             text-align: left;
-            border: 1px solid #ddd;
-        }
-        th {
-            background-color: #f2f2f2;
         }
     </style>
 </head>
 <body>
-    <h2>Classificação de Times - Free Fire</h2>
-    <input type="file" id="logFile" multiple>
-    <button onclick="processFiles()">Enviar Arquivos</button>
 
-    <h3>Classificação</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Time</th>
-                <th>Pontuação Total</th>
-                <th>Total de Kills</th>
-                <th>Booyah (1º Lugar)</th>
-            </tr>
-        </thead>
-        <tbody id="classificationTable">
-        </tbody>
-    </table>
+<h1>Upload de Arquivos e Classificação de Equipes</h1>
+<p>Carregue os arquivos de log e veja a classificação das equipes com base nos pontos e kills.</p>
 
-    <script>
-        function processFiles() {
-            const files = document.getElementById('logFile').files;
-            if (files.length === 0) {
-                alert("Por favor, selecione um ou mais arquivos .log.");
-                return;
+<input type="file" id="fileInput" multiple><br><br>
+<button onclick="processFiles()">Enviar Arquivo</button>
+
+<h2>Resultados</h2>
+<table id="resultsTable">
+    <thead>
+        <tr>
+            <th>Classificação</th>
+            <th>Team Name</th>
+            <th>Total Kill Score</th>
+            <th>Total Points</th>
+            <th>Primeiro Lugar (vezes)</th>
+            <th>Segundo Lugar (vezes)</th>
+            <th>Terceiro Lugar (vezes)</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody">
+    </tbody>
+</table>
+
+<script>
+    // Função para processar o upload e a leitura dos arquivos
+    function processFiles() {
+        const files = document.getElementById('fileInput').files;
+        if (files.length === 0) {
+            alert('Por favor, selecione um ou mais arquivos.');
+            return;
+        }
+
+        const teamsData = {};
+
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const text = event.target.result;
+                processLogData(text, teamsData);
+                updateTable(teamsData);
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    // Função para processar os dados do arquivo .log
+    function processLogData(data, teamsData) {
+        const teamRegex = /TeamName: (.+?)\s+Rank: (\d+)\s+KillScore: (\d+)\s+RankScore: \d+\s+TotalScore: \d+/g;
+        let match;
+
+        while ((match = teamRegex.exec(data)) !== null) {
+            const teamName = match[1].trim();
+            const rank = parseInt(match[2], 10);
+            const killScore = parseInt(match[3], 10);
+
+            if (!teamsData[teamName]) {
+                teamsData[teamName] = {
+                    totalKillScore: 0,
+                    totalPoints: 0,
+                    firstPlaceCount: 0,
+                    secondPlaceCount: 0,
+                    thirdPlaceCount: 0,
+                };
             }
 
-            let teamData = {}; // Armazena os dados de cada time
+            // Soma as kills
+            teamsData[teamName].totalKillScore += killScore;
 
-            // Função para processar cada arquivo individualmente
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    processFile(event.target.result, teamData);
-                    updateTable(teamData); // Atualiza a tabela a cada arquivo lido
-                };
-                reader.readAsText(file);
-            });
+            // Atribui pontos e conta a posição do time
+            switch (rank) {
+                case 1:
+                    teamsData[teamName].totalPoints += 10; // 10 pontos para 1º lugar
+                    teamsData[teamName].firstPlaceCount++;
+                    break;
+                case 2:
+                    teamsData[teamName].totalPoints += 9; // 9 pontos para 2º lugar
+                    teamsData[teamName].secondPlaceCount++;
+                    break;
+                case 3:
+                    teamsData[teamName].totalPoints += 8; // 8 pontos para 3º lugar
+                    teamsData[teamName].thirdPlaceCount++;
+                    break;
+                default:
+                    teamsData[teamName].totalPoints += (11 - rank); // Pontos decrescentes para outras posições
+                    break;
+            }
         }
+    }
 
-        // Função para processar o conteúdo de um arquivo .log
-        function processFile(content, teamData) {
-            const lines = content.split('\n');
-            let currentTeam = '';
+    // Função para ordenar e atualizar a tabela com os dados das equipes
+    function updateTable(teamsData) {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
 
-            lines.forEach(line => {
-                line = line.trim();
+        // Converte o objeto para um array e ordena por pontos e kills (critério de desempate)
+        const sortedTeams = Object.keys(teamsData).map(teamName => {
+            return { teamName, ...teamsData[teamName] };
+        }).sort((a, b) => {
+            if (b.totalPoints === a.totalPoints) {
+                return b.totalKillScore - a.totalKillScore; // Desempate por kills
+            }
+            return b.totalPoints - a.totalPoints; // Ordenar por pontos
+        });
 
-                if (line.startsWith('TeamName:')) {
-                    currentTeam = line.split(': ')[1];
-                } else if (line.startsWith('KillScore:')) {
-                    const killScore = parseInt(line.split(': ')[1]);
-                    if (!teamData[currentTeam]) {
-                        teamData[currentTeam] = { totalScore: 0, totalKills: 0, booyah: 0 };
-                    }
-                    teamData[currentTeam].totalKills += killScore;
-                } else if (line.startsWith('TotalScore:')) {
-                    const totalScore = parseInt(line.split(': ')[1]);
-                    if (!teamData[currentTeam]) {
-                        teamData[currentTeam] = { totalScore: 0, totalKills: 0, booyah: 0 };
-                    }
-                    teamData[currentTeam].totalScore += totalScore;
-                } else if (line.startsWith('Rank: 1')) {
-                    teamData[currentTeam].booyah += 1;
-                }
-            });
-        }
+        // Atualiza a tabela com os dados ordenados
+        sortedTeams.forEach((team, index) => {
+            const row = document.createElement('tr');
 
-        // Função para atualizar a tabela HTML
-        function updateTable(teamData) {
-            const tableBody = document.getElementById('classificationTable');
-            tableBody.innerHTML = ''; // Limpa a tabela antes de atualizá-la
+            const rankCell = document.createElement('td');
+            rankCell.textContent = index + 1; // Classificação
 
-            // Classifica os times primeiro pela pontuação total, depois pelos kills em caso de empate
-            const sortedTeams = Object.keys(teamData).sort((a, b) => {
-                if (teamData[b].totalScore === teamData[a].totalScore) {
-                    return teamData[b].totalKills - teamData[a].totalKills;
-                }
-                return teamData[b].totalScore - teamData[a].totalScore;
-            });
+            const teamNameCell = document.createElement('td');
+            teamNameCell.textContent = team.teamName;
 
-            // Adiciona as linhas à tabela
-            sortedTeams.forEach(team => {
-                const row = document.createElement('tr');
+            const totalKillCell = document.createElement('td');
+            totalKillCell.textContent = team.totalKillScore;
 
-                const teamNameCell = document.createElement('td');
-                teamNameCell.textContent = team;
-                row.appendChild(teamNameCell);
+            const totalPointsCell = document.createElement('td');
+            totalPointsCell.textContent = team.totalPoints;
 
-                const totalScoreCell = document.createElement('td');
-                totalScoreCell.textContent = teamData[team].totalScore;
-                row.appendChild(totalScoreCell);
+            const firstPlaceCell = document.createElement('td');
+            firstPlaceCell.textContent = team.firstPlaceCount;
 
-                const totalKillsCell = document.createElement('td');
-                totalKillsCell.textContent = teamData[team].totalKills;
-                row.appendChild(totalKillsCell);
+            const secondPlaceCell = document.createElement('td');
+            secondPlaceCell.textContent = team.secondPlaceCount;
 
-                const booyahCell = document.createElement('td');
-                booyahCell.textContent = teamData[team].booyah;
-                row.appendChild(booyahCell);
+            const thirdPlaceCell = document.createElement('td');
+            thirdPlaceCell.textContent = team.thirdPlaceCount;
 
-                tableBody.appendChild(row);
-            });
-        }
-    </script>
+            row.appendChild(rankCell);
+            row.appendChild(teamNameCell);
+            row.appendChild(totalKillCell);
+            row.appendChild(totalPointsCell);
+            row.appendChild(firstPlaceCell);
+            row.appendChild(secondPlaceCell);
+            row.appendChild(thirdPlaceCell);
+            
+            tableBody.appendChild(row);
+        });
+    }
+</script>
+
 </body>
 </html>
+
