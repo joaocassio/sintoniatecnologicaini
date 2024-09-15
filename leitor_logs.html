@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classificação de Equipes</title>
+    <title>Leitor de Arquivo de Log</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,160 +12,195 @@
         table {
             width: 100%;
             border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
+            margin-top: 20px;
         }
         th, td {
+            border: 1px solid #ddd;
             padding: 8px;
-            text-align: left;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
+    <h1>Leitor de Arquivo de Log</h1>
+    <input type="file" id="fileInput" accept=".log" multiple>
+    <button onclick="processFiles()">Enviar Arquivos</button>
 
-<h1>Upload de Arquivos e Classificação de Equipes</h1>
-<p>Carregue os arquivos de log e veja a classificação das equipes com base nos pontos e kills.</p>
+    <h2>Resultados das Equipes</h2>
+    <table id="resultTable" class="hidden">
+        <thead>
+            <tr>
+                <th>POSIÇÃO</th>
+                <th>EQUIPES</th>
+                <th>ABATES</th>
+                <th>PONTOS</th>
+                <th>BOOYAH</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Conteúdo da tabela será inserido aqui -->
+        </tbody>
+    </table>
 
-<input type="file" id="fileInput" multiple><br><br>
-<button onclick="processFiles()">Enviar Arquivo</button>
+    <h2>Resultados dos Jogadores</h2>
+    <table id="playerTable" class="hidden">
+        <thead>
+            <tr>
+                <th>POSIÇÃO</th>
+                <th>JOGADOR</th>
+                <th>ABATES</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Conteúdo da tabela será inserido aqui -->
+        </tbody>
+    </table>
 
-<h2>Resultados</h2>
-<table id="resultsTable">
-    <thead>
-        <tr>
-            <th>Classificação</th>
-            <th>Team Name</th>
-            <th>Total Kill Score</th>
-            <th>Total Points</th>
-            <th>Primeiro Lugar (vezes)</th>
-            <th>Segundo Lugar (vezes)</th>
-            <th>Terceiro Lugar (vezes)</th>
-        </tr>
-    </thead>
-    <tbody id="tableBody">
-    </tbody>
-</table>
+    <button onclick="exportToExcel()">Exportar para XLSX</button>
 
-<script>
-    // Função para processar o upload e a leitura dos arquivos
-    function processFiles() {
-        const files = document.getElementById('fileInput').files;
-        if (files.length === 0) {
-            alert('Por favor, selecione um ou mais arquivos.');
-            return;
-        }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        function processFiles() {
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+            if (files.length === 0) {
+                alert('Por favor, selecione um ou mais arquivos.');
+                return;
+            }
 
-        const teamsData = {};
+            const teamData = {};
+            const playerData = {};
 
-        Array.from(files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const text = event.target.result;
-                processLogData(text, teamsData);
-                updateTable(teamsData);
-            };
-            reader.readAsText(file);
-        });
-    }
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const content = event.target.result;
+                    const lines = content.split('\n');
 
-    // Função para processar os dados do arquivo .log
-    function processLogData(data, teamsData) {
-        const teamRegex = /TeamName: (.+?)\s+Rank: (\d+)\s+KillScore: (\d+)\s+RankScore: \d+\s+TotalScore: \d+/g;
-        let match;
+                    lines.forEach(line => {
+                        line = line.trim();
+                        console.log('Processing line:', line); // Log para depuração
 
-        while ((match = teamRegex.exec(data)) !== null) {
-            const teamName = match[1].trim();
-            const rank = parseInt(match[2], 10);
-            const killScore = parseInt(match[3], 10);
+                        // Processamento dos dados das equipes
+                        const teamNameMatch = line.match(/^TeamName:\s*(.+?)\s+Rank:\s*(\d+)\s+KillScore:\s*(\d+)\s+RankScore:\s*(\d+)\s+TotalScore:\s*(\d+)$/);
+                        if (teamNameMatch) {
+                            const [_, name, rank, kills, rankScore, totalScore] = teamNameMatch;
+                            if (!teamData[name]) {
+                                teamData[name] = {
+                                    kills: 0,
+                                    totalScore: 0,
+                                    booyah: 0
+                                };
+                            }
+                            teamData[name].kills += parseInt(kills, 10);
+                            teamData[name].totalScore += parseInt(totalScore, 10);
+                            teamData[name].booyah += (parseInt(rank, 10) === 1) ? 1 : 0;
+                        }
 
-            if (!teamsData[teamName]) {
-                teamsData[teamName] = {
-                    totalKillScore: 0,
-                    totalPoints: 0,
-                    firstPlaceCount: 0,
-                    secondPlaceCount: 0,
-                    thirdPlaceCount: 0,
+                        // Processamento dos dados dos jogadores
+                        const playerNameMatch = line.match(/^NAME:\s*(.+?)\s+ID:\s*\d+\s+KILL:\s*(\d+)$/);
+                        if (playerNameMatch) {
+                            const [_, playerName, kills] = playerNameMatch;
+                            if (!playerData[playerName]) {
+                                playerData[playerName] = 0;
+                            }
+                            playerData[playerName] += parseInt(kills, 10);
+                        }
+                    });
+
+                    // Atualiza a tabela de equipes
+                    updateTeamTable(teamData);
+                    // Atualiza a tabela de jogadores
+                    updatePlayerTable(playerData);
                 };
-            }
-
-            // Soma as kills
-            teamsData[teamName].totalKillScore += killScore;
-
-            // Atribui pontos e conta a posição do time
-            switch (rank) {
-                case 1:
-                    teamsData[teamName].totalPoints += 10; // 10 pontos para 1º lugar
-                    teamsData[teamName].firstPlaceCount++;
-                    break;
-                case 2:
-                    teamsData[teamName].totalPoints += 9; // 9 pontos para 2º lugar
-                    teamsData[teamName].secondPlaceCount++;
-                    break;
-                case 3:
-                    teamsData[teamName].totalPoints += 8; // 8 pontos para 3º lugar
-                    teamsData[teamName].thirdPlaceCount++;
-                    break;
-                default:
-                    teamsData[teamName].totalPoints += (11 - rank); // Pontos decrescentes para outras posições
-                    break;
-            }
+                reader.readAsText(file);
+            });
         }
-    }
 
-    // Função para ordenar e atualizar a tabela com os dados das equipes
-    function updateTable(teamsData) {
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = '';
+        function updateTeamTable(teamData) {
+            const tableBody = document.querySelector('#resultTable tbody');
+            tableBody.innerHTML = '';
 
-        // Converte o objeto para um array e ordena por pontos e kills (critério de desempate)
-        const sortedTeams = Object.keys(teamsData).map(teamName => {
-            return { teamName, ...teamsData[teamName] };
-        }).sort((a, b) => {
-            if (b.totalPoints === a.totalPoints) {
-                return b.totalKillScore - a.totalKillScore; // Desempate por kills
-            }
-            return b.totalPoints - a.totalPoints; // Ordenar por pontos
-        });
+            const sortedTeams = Object.keys(teamData).map(team => ({
+                name: team,
+                ...teamData[team]
+            })).sort((a, b) => {
+                if (b.totalScore === a.totalScore) {
+                    return b.kills - a.kills;
+                }
+                return b.totalScore - a.totalScore;
+            });
 
-        // Atualiza a tabela com os dados ordenados
-        sortedTeams.forEach((team, index) => {
-            const row = document.createElement('tr');
+            let position = 1;
+            sortedTeams.forEach(team => {
+                const { name, kills, totalScore, booyah } = team;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${position++}</td>
+                    <td>${name}</td>
+                    <td>${kills}</td>
+                    <td>${totalScore}</td>
+                    <td>${booyah}</td>
+                `;
+                tableBody.appendChild(row);
+            });
 
-            const rankCell = document.createElement('td');
-            rankCell.textContent = index + 1; // Classificação
+            document.getElementById('resultTable').classList.remove('hidden');
+        }
 
-            const teamNameCell = document.createElement('td');
-            teamNameCell.textContent = team.teamName;
+        function updatePlayerTable(playerData) {
+            const tableBody = document.querySelector('#playerTable tbody');
+            tableBody.innerHTML = '';
 
-            const totalKillCell = document.createElement('td');
-            totalKillCell.textContent = team.totalKillScore;
+            const sortedPlayers = Object.keys(playerData).map(player => ({
+                name: player,
+                kills: playerData[player]
+            })).sort((a, b) => b.kills - a.kills);
 
-            const totalPointsCell = document.createElement('td');
-            totalPointsCell.textContent = team.totalPoints;
+            let position = 1;
+            sortedPlayers.forEach(player => {
+                const { name, kills } = player;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${position++}</td>
+                    <td>${name}</td>
+                    <td>${kills}</td>
+                `;
+                tableBody.appendChild(row);
+            });
 
-            const firstPlaceCell = document.createElement('td');
-            firstPlaceCell.textContent = team.firstPlaceCount;
+            document.getElementById('playerTable').classList.remove('hidden');
+        }
 
-            const secondPlaceCell = document.createElement('td');
-            secondPlaceCell.textContent = team.secondPlaceCount;
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            wb.Props = {
+                Title: "Resultados",
+                Subject: "Resultados",
+                Author: "Autor",
+                CreatedDate: new Date()
+            };
 
-            const thirdPlaceCell = document.createElement('td');
-            thirdPlaceCell.textContent = team.thirdPlaceCount;
+            // Adiciona a tabela de equipes
+            const teamTable = document.getElementById('resultTable');
+            const teamData = Array.from(teamTable.querySelectorAll('tr')).map(row => Array.from(row.querySelectorAll('td')).map(cell => cell.textContent));
+            const teamWs = XLSX.utils.aoa_to_sheet(teamData);
+            XLSX.utils.book_append_sheet(wb, teamWs, "Equipes");
 
-            row.appendChild(rankCell);
-            row.appendChild(teamNameCell);
-            row.appendChild(totalKillCell);
-            row.appendChild(totalPointsCell);
-            row.appendChild(firstPlaceCell);
-            row.appendChild(secondPlaceCell);
-            row.appendChild(thirdPlaceCell);
-            
-            tableBody.appendChild(row);
-        });
-    }
-</script>
+            // Adiciona a tabela de jogadores
+            const playerTable = document.getElementById('playerTable');
+            const playerData = Array.from(playerTable.querySelectorAll('tr')).map(row => Array.from(row.querySelectorAll('td')).map(cell => cell.textContent));
+            const playerWs = XLSX.utils.aoa_to_sheet(playerData);
+            XLSX.utils.book_append_sheet(wb, playerWs, "Jogadores");
 
+            XLSX.writeFile(wb, "resultados.xlsx");
+        }
+    </script>
 </body>
 </html>
-
