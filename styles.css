@@ -5,12 +5,18 @@
     box-sizing: border-box;
 }
 
-body {
+html, body {
+    height: 100%;
     font-family: Arial, sans-serif;
     background: linear-gradient(to bottom, #e0e0e0, #c0c0c0);
     color: #333;
     text-align: center;
     cursor: url('https://cdn.pixabay.com/photo/2016/12/14/23/08/crosshair-1901045_960_720.png'), auto;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
 }
 
 header {
@@ -44,6 +50,7 @@ header {
 }
 
 .message-section {
+    flex: 1; /* Expande a seção de mensagem para ocupar o espaço disponível */
     margin: 40px 20px;
 }
 
@@ -57,13 +64,11 @@ header {
 }
 
 footer {
-    margin-top: 40px;
-    padding: 10px;
     background-color: #000;
     color: #fff;
-}
-
-/* Estilizando o cursor */
-body, a {
-    cursor: url('https://cdn.pixabay.com/photo/2016/12/14/23/08/crosshair-1901045_960_720.png'), auto;
+    padding: 10px;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
 }
