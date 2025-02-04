@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Signature Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+
+    .form-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .email-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .email-group input {
+      flex-grow: 1;
+    }
+
+.checkbox-group label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-left: 5px; /* Optional spacing between checkbox and text */
+}
+
+    button {
+      display: inline-block;
+      background-color: #007bff;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .signature-container {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 8px;
+      background: #f7f7f7;
+    }
+
+    .signature-name {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .signature-position,
+    .signature-department,
+    .signature-phone,
+    .signature-email {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    .signature-image {
+      width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="form-container">
+    <h1>Gerador de Assinaturas - Genesis Group</h1>
+    <div class="form-group">
+      <label>Nome</label>
+      <input type="text" id="name" placeholder="Seu nome aqui">
+    </div>
+    <div class="form-group">
+      <label>Cargo</label>
+      <input type="text" id="position" placeholder="Ex: Supervisor de Operações">
+    </div>
+    <div class="form-group">
+      <label>Setor</label>
+      <input type="text" id="department" placeholder="Ex: Conexão no Campo | MT2/MT3">
+    </div>
+    <div class="form-group">
+      <label>Telefone/Whatsapp</label>
+      <input type="text" id="phone" placeholder="Ex: +55 (xx) xxxxx-xxxx">
+    </div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <div class="email-group">
+        <input type="text" id="email" placeholder="primeiro_nome.ultimo_nome">
+        <span>@genesisgroup.com.br</span>
+      </div>
+    </div>
+    <div class="form-group checkbox-group">
+      <input type="checkbox" id="default-image" title="Marque essa opção para usar a imagem padrão da empresa em sua assinatura">
+      <label for="default-image">Imagem padrão Genesis</label>
+    </div>
+    <div class="form-group">
+      <label>Upload Banner Image</label>
+      <input type="file" id="image-upload">
+    </div>
+    <button onclick="generateSignature()">Gerar Assinatura</button>
+    <button onclick="copySignature()">Copiar Assinatura</button>
+    <div id="signature-preview" class="signature-container"></div>
+  </div>
+
+  <script>
+    function generateSignature() {
+      const name = document.getElementById("name").value;
+      const position = document.getElementById("position").value;
+      const department = document.getElementById("department").value;
+      const phone = document.getElementById("phone").value;
+      const email = document.getElementById("email").value + "@genesisgroup.com.br";
+      const imageInput = document.getElementById("image-upload");
+      const useDefaultImage = document.getElementById("default-image").checked;
+      let imageUrl = "";
+
+      if (useDefaultImage) {
+        imageUrl = "https://i.imgur.com/oqVyOzD.png";
+      } else if (imageInput.files && imageInput.files[0]) {
+        imageUrl = URL.createObjectURL(imageInput.files[0]);
+      }
+
+      const signatureContainer = document.getElementById("signature-preview");
+      signatureContainer.innerHTML = `
+        <h2 class="signature-name">${name}</h2>
+        <p class="signature-position">${position}</p>
+        <p class="signature-department">${department}</p>
+        <p class="signature-phone">${phone}</p>
+        <p class="signature-email">${email}</p>
+        ${imageUrl ? `<img src="${imageUrl}" alt="Signature Image" class="signature-image">` : ""}
+      `;
+    }
+
+    function copySignature() {
+      const signatureContainer = document.getElementById("signature-preview");
+      const range = document.createRange();
+      range.selectNode(signatureContainer);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      document.execCommand("copy");
+      //alert("Signature copied to clipboard!");
+    }
+  </script>
+</body>
+
+</html>
