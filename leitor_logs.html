@@ -108,7 +108,7 @@
 <body>
     <header>
         <a href="https://www.youtube.com/@sintoniatecnologica" target="_blank">
-    <img src="https://yt3.googleusercontent.com/BZXwZnGs8xXxtad9_H__ch8Bk7DLT7BjEYRXyxRUeimhUwZvJBDyymYrY_slPZtF8ZkuQyF00w=s900-c-k-c0x00ffffff-no-rj" alt="Logo">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRS4R4MmDXExLIgDAMuEoPblTC-ZJlhB084Qw&s" alt="Logo">
 </a>
     </header>
 
@@ -178,9 +178,7 @@
         }
 
         function processFiles() {
-            // Abre seu canal do YouTube e Instagram em novas guias
-            window.open("https://www.youtube.com/@sintoniatecnologica", "_blank");
-            window.open("https://www.instagram.com/sintoniatecnologica", "_blank");
+            showPopup(); // Mostra o popup antes de continuar
             
             const fileInput = document.getElementById('fileInput');
             const files = fileInput.files;
@@ -331,6 +329,30 @@
             }
             window.getSelection().removeAllRanges();
         }
+
+        function showPopup() {
+    document.getElementById("popupModal").style.display = "flex";
+}
+
+function closePopup() {
+    document.getElementById("popupModal").style.display = "none";
+}
     </script>
+    <!-- Popup Modal -->
+<div id="popupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#fff; padding:30px; border-radius:10px; text-align:center; max-width:300px; width:90%;">
+        <h2 style="margin-top:0;">💡 Sintonia Tecnológica</h2>
+        <p>Curtiu o projeto? Siga e se inscreva nas redes:</p>
+        <div style="font-size:30px; margin:15px 0;">
+            <a href="https://www.youtube.com/@sintoniatecnologica" target="_blank" title="YouTube" style="margin: 0 10px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" width="40">
+            </a>
+            <a href="https://www.instagram.com/sintoniatecnologica" target="_blank" title="Instagram" style="margin: 0 10px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" width="40">
+            </a>
+        </div>
+        <button onclick="closePopup()" style="padding:10px 20px; background:#0078d4; color:white; border:none; border-radius:5px; cursor:pointer;">Fechar</button>
+    </div>
+</div>
 </body>
 </html>
