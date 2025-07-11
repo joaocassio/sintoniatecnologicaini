@@ -17,6 +17,7 @@ function updateFileLabel() {
 }
 
 function processFiles() {
+    console.log("ProcessFiles chamado!");
     const fileInput = document.getElementById('fileInput');
     if (fileInput.files.length === 0) {
         alert('Por favor, selecione um ou mais arquivos.');
@@ -154,3 +155,18 @@ function copyTable(id) {
     }
     window.getSelection().removeAllRanges();
 }
+
+// Adicione isto no FINAL do arquivo script.js
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('copyTeamsBtn').addEventListener('click', function() {
+        copyTable('resultTable');
+    });
+    
+    document.getElementById('copyPlayersBtn').addEventListener('click', function() {
+        copyTable('playerTable');
+    });
+    
+    document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+    
+    console.log("Event listeners configurados!");
+});
