@@ -1,3 +1,4 @@
+console.log("Script.js carregado!");
 document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('keydown', e => {
     if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
@@ -6,6 +7,7 @@ document.addEventListener('keydown', e => {
 });
 
 function updateFileLabel() {
+    console.log("updateFileLabel chamado!");
     const input = document.getElementById('fileInput');
     const fileLabel = document.getElementById('fileLabel');
 
@@ -59,7 +61,7 @@ function startProcessing() {
                     }
                     teamData[name].kills += parseInt(kills, 10);
                     teamData[name].totalScore += parseInt(totalScore, 10);
-                    teamData[name].booyah += (parseInt(rank, 10) === 1 ? 1 : 0;
+                    teamData[name].booyah += parseInt(rank, 10) === 1 ? 1 : 0;
                 }
 
                 const playerMatch = line.match(/^NAME:\s*(.+?)\s+ID:\s*\d+\s+KILL:\s*(\d+)$/);
@@ -170,3 +172,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log("Event listeners configurados!");
 });
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('fileInput').addEventListener('change', updateFileLabel);
+});
+console.log("processFiles chamado!"
+           );
