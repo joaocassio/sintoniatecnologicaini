@@ -4,112 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leitor de Arquivo de Log</title>
-    <style>
-        body {
-            font-family: "Segoe UI", "Segoe WP", "Helvetica Neue", sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-
-        header {
-            background-color: #000;
-            padding: 20px 0;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        header img {
-            height: 150px;
-            object-fit: contain;
-        }
-
-        h1, h2 {
-            font-size: 24px;
-            color: #333;
-            text-align: center;
-        }
-
-        input[type="file"] {
-            display: block;
-            margin: 20px auto;
-            background-color: #0078d4;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            max-width: 200px;
-        }
-
-        input[type="file"]:hover {
-            background-color: #005a9e;
-        }
-
-        #fileLabel {
-            text-align: center;
-            font-size: 14px;
-            color: #0078d4;
-            margin-top: 10px;
-        }
-
-        button {
-            background-color: #0078d4;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            display: inline-block;
-            margin: 10px 5px;
-        }
-
-        button:hover {
-            background-color: #005a9e;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #0078d4;
-            color: white;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .btn-container {
-            text-align: center;
-        }
-
-        @media (max-width: 600px) {
-            h1, h2 {
-                font-size: 20px;
-            }
-
-            button, input[type="file"] {
-                width: 100%;
-                max-width: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="assets/script.js" defer></script>
 </head>
 <body>
     <header>
         <a href="https://www.youtube.com/@sintoniatecnologica" target="_blank">
-    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRS4R4MmDXExLIgDAMuEoPblTC-ZJlhB084Qw&s" alt="Logo">
-</a>
+            <img src="https://yt3.googleusercontent.com/BZXwZnGs8xXxtad9_H__ch8Bk7DLT7BjEYRXyxRUeimhUwZvJBDyymYrY_slPZtF8ZkuQyF00w=s900-c-k-c0x00ffffff-no-rj" alt="Logo">
+        </a>
     </header>
 
     <h1>Leitor de Arquivo de Log</h1>
@@ -125,11 +28,7 @@
     </div>
 
     <h2>Resultados das Equipes</h2>
-<p style="text-align: center; margin-top: -10px;">
-    <a href="https://www.youtube.com/@sintoniatecnologica" target="_blank" style="color: #0078d4; text-decoration: none; font-weight: bold;">
-        www.youtube.com/@sintoniatecnologica
-    </a>
-</p>
+    <p style="text-align:center;"><a href="https://www.youtube.com/@sintoniatecnologica" target="_blank">www.youtube.com/@sintoniatecnologica</a></p>
     <table id="resultTable" class="hidden">
         <thead>
             <tr>
@@ -140,9 +39,7 @@
                 <th>BOOYAH</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Conteúdo da tabela será inserido aqui -->
-        </tbody>
+        <tbody></tbody>
     </table>
 
     <h2>Resultados dos Jogadores</h2>
@@ -154,205 +51,29 @@
                 <th>ABATES</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Conteúdo da tabela será inserido aqui -->
-        </tbody>
+        <tbody></tbody>
     </table>
 
     <div class="btn-container">
         <button onclick="exportToExcel()">Exportar para XLSX</button>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script>
-        // Atualiza o rótulo do arquivo exibido
-        function updateFileLabel() {
-            const input = document.getElementById('fileInput');
-            const fileLabel = document.getElementById('fileLabel');
-
-            if (input.files.length > 0) {
-                fileLabel.textContent = `${input.files.length} arquivos selecionados`;
-            } else {
-                fileLabel.textContent = 'Nenhum arquivo selecionado';
-            }
-        }
-
-        function processFiles() {
-            showPopup(); // Mostra o popup antes de continuar
-            
-            const fileInput = document.getElementById('fileInput');
-            const files = fileInput.files;
-            if (files.length === 0) {
-                alert('Por favor, selecione um ou mais arquivos.');
-                return;
-            }
-
-            const teamData = {};
-            const playerData = {};
-
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const content = event.target.result;
-                    const lines = content.split('\n');
-
-                    lines.forEach(line => {
-                        line = line.trim();
-                        console.log('Processing line:', line); // Log para depuração
-
-                        // Processamento dos dados das equipes
-                        const teamNameMatch = line.match(/^TeamName:\s*(.+?)\s+Rank:\s*(\d+)\s+KillScore:\s*(\d+)\s+RankScore:\s*(\d+)\s+TotalScore:\s*(\d+)$/);
-                        if (teamNameMatch) {
-                            const [_, name, rank, kills, rankScore, totalScore] = teamNameMatch;
-                            if (!teamData[name]) {
-                                teamData[name] = {
-                                    kills: 0,
-                                    totalScore: 0,
-                                    booyah: 0
-                                };
-                            }
-                            teamData[name].kills += parseInt(kills, 10);
-                            teamData[name].totalScore += parseInt(totalScore, 10);
-                            teamData[name].booyah += (parseInt(rank, 10) === 1) ? 1 : 0;
-                        }
-
-                        // Processamento dos dados dos jogadores
-                        const playerNameMatch = line.match(/^NAME:\s*(.+?)\s+ID:\s*\d+\s+KILL:\s*(\d+)$/);
-                        if (playerNameMatch) {
-                            const [_, playerName, kills] = playerNameMatch;
-                            if (!playerData[playerName]) {
-                                playerData[playerName] = 0;
-                            }
-                            playerData[playerName] += parseInt(kills, 10);
-                        }
-                    });
-
-                    // Atualiza a tabela de equipes
-                    updateTeamTable(teamData);
-                    // Atualiza a tabela de jogadores
-                    updatePlayerTable(playerData);
-                };
-                reader.readAsText(file);
-            });
-        }
-
-        function updateTeamTable(teamData) {
-            const tableBody = document.querySelector('#resultTable tbody');
-            tableBody.innerHTML = '';
-
-            const sortedTeams = Object.keys(teamData).map(team => ({
-                name: team,
-                ...teamData[team]
-            })).sort((a, b) => {
-                if (b.totalScore === a.totalScore) {
-                    return b.kills - a.kills;
-                }
-                return b.totalScore - a.totalScore;
-            });
-
-            let position = 1;
-            sortedTeams.forEach(team => {
-                const { name, kills, totalScore, booyah } = team;
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${position++}</td>
-                    <td>${name}</td>
-                    <td>${kills}</td>
-                    <td>${totalScore}</td>
-                    <td>${booyah}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-
-            document.getElementById('resultTable').classList.remove('hidden');
-        }
-
-        function updatePlayerTable(playerData) {
-            const tableBody = document.querySelector('#playerTable tbody');
-            tableBody.innerHTML = '';
-
-            const sortedPlayers = Object.keys(playerData).map(player => ({
-                name: player,
-                kills: playerData[player]
-            })).sort((a, b) => b.kills - a.kills);
-
-            let position = 1;
-            sortedPlayers.forEach(player => {
-                const { name, kills } = player;
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${position++}</td>
-                    <td>${name}</td>
-                    <td>${kills}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-
-            document.getElementById('playerTable').classList.remove('hidden');
-        }
-
-        function exportToExcel() {
-            const wb = XLSX.utils.book_new();
-            wb.Props = {
-                Title: "Resultados",
-                Subject: "Resultados",
-                Author: "Autor",
-                CreatedDate: new Date()
-            };
-
-            // Adiciona a tabela de equipes
-            const teamTable = document.getElementById('resultTable');
-            const teamData = Array.from(teamTable.querySelectorAll('tr')).map(row => Array.from(row.querySelectorAll('td')).map(cell => cell.textContent));
-            const teamWs = XLSX.utils.aoa_to_sheet(teamData);
-            XLSX.utils.book_append_sheet(wb, teamWs, "Equipes");
-
-            // Adiciona a tabela de jogadores
-            const playerTable = document.getElementById('playerTable');
-            const playerData = Array.from(playerTable.querySelectorAll('tr')).map(row => Array.from(row.querySelectorAll('td')).map(cell => cell.textContent));
-            const playerWs = XLSX.utils.aoa_to_sheet(playerData);
-            XLSX.utils.book_append_sheet(wb, playerWs, "Jogadores");
-
-            XLSX.writeFile(wb, "resultados.xlsx");
-        }
-
-        function copyTable(tableId) {
-            const table = document.getElementById(tableId);
-            const range = document.createRange();
-            range.selectNode(table);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            try {
-                document.execCommand('copy');
-                alert('Tabela copiada para a área de transferência!');
-            } catch (err) {
-                alert('Falha ao copiar tabela.');
-            }
-            window.getSelection().removeAllRanges();
-        }
-
-        function showPopup() {
-    document.getElementById("popupModal").style.display = "flex";
-}
-
-function closePopup() {
-    document.getElementById("popupModal").style.display = "none";
-}
-    </script>
-    <!-- Popup Modal -->
-<div id="popupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:#fff; padding:30px; border-radius:10px; text-align:center; max-width:300px; width:90%;">
-        <h2 style="margin-top:0;">💡 Sintonia Tecnológica</h2>
-        <p>Curtiu o projeto? Siga e se inscreva nas redes:</p>
-        <div style="font-size:30px; margin:15px 0;">
-            <a href="https://www.youtube.com/@sintoniatecnologica" target="_blank" title="YouTube" style="margin: 0 10px;">
-                <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" width="40">
-            </a>
-            <a href="https://www.instagram.com/sintoniatecnologica" target="_blank" title="Instagram" style="margin: 0 10px;">
-                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" width="40">
-            </a>
+    <div id="popupModal" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closePopup()">&times;</span>
+            <h2>Ajude nosso projeto!</h2>
+            <p>Visite e se inscreva no nosso canal do YouTube e siga no Instagram:</p>
+            <p>
+                <a href="https://www.youtube.com/@sintoniatecnologica" target="_blank">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" width="32"> YouTube
+                </a>
+                &nbsp;&nbsp;
+                <a href="https://www.instagram.com/sintoniatecnologica/" target="_blank">
+                    <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" width="32"> Instagram
+                </a>
+            </p>
+            <button onclick="closePopupAndProcess()">OK</button>
         </div>
-        <button onclick="closePopup()" style="padding:10px 20px; background:#0078d4; color:white; border:none; border-radius:5px; cursor:pointer;">Fechar</button>
     </div>
-</div>
 </body>
 </html>
