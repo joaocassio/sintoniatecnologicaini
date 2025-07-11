@@ -125,6 +125,11 @@
     </div>
 
     <h2>Resultados das Equipes</h2>
+<p style="text-align: center; margin-top: -10px;">
+    <a href="https://www.youtube.com/@sintoniatecnologica" target="_blank" style="color: #0078d4; text-decoration: none; font-weight: bold;">
+        www.youtube.com/@sintoniatecnologica
+    </a>
+</p>
     <table id="resultTable" class="hidden">
         <thead>
             <tr>
@@ -173,6 +178,10 @@
         }
 
         function processFiles() {
+            // Abre seu canal do YouTube e Instagram em novas guias
+            window.open("https://www.youtube.com/@sintoniatecnologica", "_blank");
+            window.open("https://www.instagram.com/sintoniatecnologica", "_blank");
+            
             const fileInput = document.getElementById('fileInput');
             const files = fileInput.files;
             if (files.length === 0) {
