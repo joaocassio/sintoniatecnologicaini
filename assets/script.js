@@ -53,7 +53,7 @@ function startProcessing() {
                 line = line.trim();
                 const teamMatch = line.match(/^TeamName:\s*(.+?)\s+Rank:\s*(\d+)\s+KillScore:\s*(\d+)\s+RankScore:\s*(\d+)\s+TotalScore:\s*(\d+)$/);
                 if (teamMatch) {
-                    const [_, name, rank, kills, _, totalScore] = teamMatch;
+                    const [fullMatch, name, rank, kills, rankScore, totalScore] = teamMatch;
                     if (!teamData[name]) {
                         teamData[name] = { kills: 0, totalScore: 0, booyah: 0 };
                     }
@@ -64,7 +64,7 @@ function startProcessing() {
 
                 const playerMatch = line.match(/^NAME:\s*(.+?)\s+ID:\s*\d+\s+KILL:\s*(\d+)$/);
                 if (playerMatch) {
-                    const [_, playerName, kills] = playerMatch;
+                    const [fullMatch, playerName, kills] = playerMatch;
                     if (!playerData[playerName]) {
                         playerData[playerName] = 0;
                     }
