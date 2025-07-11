@@ -150,3 +150,4 @@ function copyTable(id) {
     window.getSelection().removeAllRanges();
 }
 
+window.processFiles = processFiles;
