@@ -19,56 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function processFiles() {
-        const files = fileInput.files;
-        if (files.length === 0) {
-            alert('Por favor, selecione um ou mais arquivos.');
-            return;
-        }
-
-        const teamData = {};
-        const playerData = {};
-
-        Array.from(files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                const content = event.target.result;
-                const lines = content.split('\n');
-
-                lines.forEach(line => {
-                    line = line.trim();
-
-                    const teamMatch = line.match(/^TeamName:\s*(.+?)\s+Rank:\s*(\d+)\s+KillScore:\s*(\d+)\s+RankScore:\s*(\d+)\s+TotalScore:\s*(\d+)$/);
-                    if (teamMatch) {
-                        const [_, name, rank, kills, rankScore, totalScore] = teamMatch;
-                        if (!teamData[name]) {
-                            teamData[name] = {
-                                kills: 0,
-                                totalScore: 0,
-                                booyah: 0
-                            };
-                        }
-                        teamData[name].kills += parseInt(kills);
-                        teamData[name].totalScore += parseInt(totalScore);
-                        teamData[name].booyah += parseInt(rank) === 1 ? 1 : 0;
-                    }
-
-                    const playerMatch = line.match(/^NAME:\s*(.+?)\s+ID:\s*\d+\s+KILL:\s*(\d+)$/);
-                    if (playerMatch) {
-                        const [_, playerName, kills] = playerMatch;
-                        if (!playerData[playerName]) {
-                            playerData[playerName] = 0;
-                        }
-                        playerData[playerName] += parseInt(kills);
-                    }
-                });
-
-                updateTeamTable(teamData);
-                updatePlayerTable(playerData);
-            };
-            reader.readAsText(file);
-        });
-    }
+    
 
     function updateTeamTable(teamData) {
         const tableBody = document.querySelector('#resultTable tbody');
@@ -162,3 +113,53 @@ document.addEventListener("DOMContentLoaded", function () {
         window.getSelection().removeAllRanges();
     };
 });
+function processFiles() {
+        const files = fileInput.files;
+        if (files.length === 0) {
+            alert('Por favor, selecione um ou mais arquivos.');
+            return;
+        }
+
+        const teamData = {};
+        const playerData = {};
+
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const content = event.target.result;
+                const lines = content.split('\n');
+
+                lines.forEach(line => {
+                    line = line.trim();
+
+                    const teamMatch = line.match(/^TeamName:\s*(.+?)\s+Rank:\s*(\d+)\s+KillScore:\s*(\d+)\s+RankScore:\s*(\d+)\s+TotalScore:\s*(\d+)$/);
+                    if (teamMatch) {
+                        const [_, name, rank, kills, rankScore, totalScore] = teamMatch;
+                        if (!teamData[name]) {
+                            teamData[name] = {
+                                kills: 0,
+                                totalScore: 0,
+                                booyah: 0
+                            };
+                        }
+                        teamData[name].kills += parseInt(kills);
+                        teamData[name].totalScore += parseInt(totalScore);
+                        teamData[name].booyah += parseInt(rank) === 1 ? 1 : 0;
+                    }
+
+                    const playerMatch = line.match(/^NAME:\s*(.+?)\s+ID:\s*\d+\s+KILL:\s*(\d+)$/);
+                    if (playerMatch) {
+                        const [_, playerName, kills] = playerMatch;
+                        if (!playerData[playerName]) {
+                            playerData[playerName] = 0;
+                        }
+                        playerData[playerName] += parseInt(kills);
+                    }
+                });
+
+                updateTeamTable(teamData);
+                updatePlayerTable(playerData);
+            };
+            reader.readAsText(file);
+        });
+    }
