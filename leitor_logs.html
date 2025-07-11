@@ -23,8 +23,8 @@
     </div>
 
     <div class="btn-container">
-        <button class="btn" onclick="copyTable('resultTable')">Copiar Tabela de Equipes</button>
-        <button class="btn" onclick="copyTable('playerTable')">Copiar Tabela de Jogadores</button>
+            <button id="copyTeamsBtn">Copiar Tabela de Equipes</button>
+            <button id="copyPlayersBtn">Copiar Tabela de Jogadores</button>
     </div>
 
     <h2>Resultados das Equipes</h2>
@@ -55,7 +55,7 @@
     </table>
 
     <div class="btn-container">
-        <button onclick="exportToExcel()">Exportar para XLSX</button>
+        <button id="exportExcelBtn">Exportar para XLSX</button>
     </div>
 
     <div id="popupModal" class="popup">
