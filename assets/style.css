@@ -96,6 +96,24 @@
                 max-width: none;
             }
         }
+
+/* Melhorias para seu popup existente */
 #popupModal {
-    display: none !important; /* Inicia escondido */
+    transition: opacity 0.3s ease;
+}
+
+#popupModal img {
+    transition: transform 0.3s ease;
+}
+
+#popupModal img:hover {
+    transform: scale(1.1);
+}
+
+#popupModal button {
+    transition: background 0.2s ease;
+}
+
+#popupModal button:hover {
+    background: #005fa3 !important;
 }
