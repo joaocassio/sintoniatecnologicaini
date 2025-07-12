@@ -10,8 +10,10 @@
             }
         }
 
-        function processFiles() {
-          showPopup();
+        function processFiles() { 
+                showPopup();
+        }
+                function processLogFiles() {
             const fileInput = document.getElementById('fileInput');
             const files = fileInput.files;
             if (files.length === 0) {
