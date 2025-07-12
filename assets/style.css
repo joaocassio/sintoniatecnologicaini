@@ -96,3 +96,6 @@
                 max-width: none;
             }
         }
+#popupModal {
+    display: none !important; /* Inicia escondido */
+}
