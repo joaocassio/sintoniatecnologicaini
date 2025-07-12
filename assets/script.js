@@ -160,28 +160,48 @@
             }
             window.getSelection().removeAllRanges();
         }
+// Configurações do popup
+const POPUP_INTERVAL = 20 * 60 * 1000; // 20 minutos em ms
+
 function showPopup() {
-    // Verifica se já existe um timer em andamento
-    if (!window.popupTimer) {
-        // Mostra o popup imediatamente na primeira vez
-        document.getElementById("popupModal").style.display = "flex";
+    const popup = document.getElementById("popupModal");
+    if (popup) {
+        popup.style.display = "flex";
         
-        // Configura o intervalo para aparecer a cada 20 minutos (1200000 ms)
-        window.popupTimer = setInterval(() => {
-            document.getElementById("popupModal").style.display = "flex";
-        }, 1200000); // 20 minutos = 1200000 milissegundos
+        // Agenda próximo popup
+        const nextTime = Date.now() + POPUP_INTERVAL;
+        try {
+            localStorage.setItem("nextPopupTime", nextTime.toString());
+        } catch (e) {
+            console.log("LocalStorage não disponível (modo anônimo)");
+        }
         
-        // Reinicia o timer quando a página for recarregada
-        window.addEventListener('beforeunload', () => {
-            clearInterval(window.popupTimer);
-            window.popupTimer = null;
-        });
+        setTimeout(showPopup, POPUP_INTERVAL);
     }
 }
 
-// Chama a função quando a página carrega
-window.onload = showPopup;
+// Verificação inicial
+function initPopup() {
+    let nextTime;
+    
+    try {
+        nextTime = localStorage.getItem("nextPopupTime");
+    } catch (e) {
+        nextTime = null;
+    }
 
+    const now = Date.now();
+    
+    if (!nextTime || now >= parseInt(nextTime)) {
+        showPopup();
+    } else {
+        const remainingTime = parseInt(nextTime) - now;
+        setTimeout(showPopup, remainingTime);
+    }
+}
+
+// Inicializa quando o DOM estiver pronto
+document.addEventListener("DOMContentLoaded", initPopup);
 function closePopup() {
     document.getElementById("popupModal").style.display = "none";
 }
