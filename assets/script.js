@@ -160,28 +160,35 @@
             }
             window.getSelection().removeAllRanges();
         }
-// Configurações do popup
-const POPUP_INTERVAL = 20 * 60 * 1000; // 20 minutos em ms
+// Configurações
+const POPUP_INTERVAL = 20 * 60 * 1000; // 20 minutos em milissegundos
 
+// Função para mostrar o popup
 function showPopup() {
     const popup = document.getElementById("popupModal");
     if (popup) {
         popup.style.display = "flex";
         
-        // Agenda próximo popup
+        // Agenda o próximo popup
         const nextTime = Date.now() + POPUP_INTERVAL;
         try {
             localStorage.setItem("nextPopupTime", nextTime.toString());
         } catch (e) {
-            console.log("LocalStorage não disponível (modo anônimo)");
+            console.log("Modo anônimo - usando timeout apenas");
         }
         
         setTimeout(showPopup, POPUP_INTERVAL);
     }
 }
 
-// Verificação inicial
-function initPopup() {
+// Função para fechar
+function closePopup() {
+    const popup = document.getElementById("popupModal");
+    if (popup) popup.style.display = "none";
+}
+
+// Inicialização
+function initPopupSystem() {
     let nextTime;
     
     try {
@@ -200,8 +207,5 @@ function initPopup() {
     }
 }
 
-// Inicializa quando o DOM estiver pronto
-document.addEventListener("DOMContentLoaded", initPopup);
-function closePopup() {
-    document.getElementById("popupModal").style.display = "none";
-}
+// Inicia quando a página carregar
+document.addEventListener("DOMContentLoaded", initPopupSystem);
