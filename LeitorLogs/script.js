@@ -1,4 +1,3 @@
-    <script>
         // Atualiza o rótulo do arquivo exibido
         function updateFileLabel() {
             const input = document.getElementById('fileInput');
@@ -229,4 +228,3 @@ document.addEventListener('keydown', function(e) {
         alert("Acesso negado");
     }
 });
-    </script>
