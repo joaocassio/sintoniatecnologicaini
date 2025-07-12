@@ -10,10 +10,7 @@
             }
         }
 
-        function processFiles() { 
-                showPopup();
-        }
-                function processLogFiles() {
+        function processFiles() {                 
             const fileInput = document.getElementById('fileInput');
             const files = fileInput.files;
             if (files.length === 0) {
@@ -164,13 +161,26 @@
             window.getSelection().removeAllRanges();
         }
 function showPopup() {
-    if (!sessionStorage.getItem("popupShown")) {
+    // Verifica se já existe um timer em andamento
+    if (!window.popupTimer) {
+        // Mostra o popup imediatamente na primeira vez
         document.getElementById("popupModal").style.display = "flex";
-        sessionStorage.setItem("popupShown", "true");
-    } else {
-        processLogFiles(); // Chama diretamente se popup já foi exibido
+        
+        // Configura o intervalo para aparecer a cada 20 minutos (1200000 ms)
+        window.popupTimer = setInterval(() => {
+            document.getElementById("popupModal").style.display = "flex";
+        }, 1200000); // 20 minutos = 1200000 milissegundos
+        
+        // Reinicia o timer quando a página for recarregada
+        window.addEventListener('beforeunload', () => {
+            clearInterval(window.popupTimer);
+            window.popupTimer = null;
+        });
     }
 }
+
+// Chama a função quando a página carrega
+window.onload = showPopup;
 
 function closePopup() {
     document.getElementById("popupModal").style.display = "none";
