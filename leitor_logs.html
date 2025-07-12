@@ -4,31 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leitor de Arquivo de Log</title>
-    <link rel="stylesheet" href="assets/style.css">
+ 	    <link rel="stylesheet" href="assets/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="assets/script.js"></script>
 </head>
 <body>
     <header>
         <a href="https://www.youtube.com/@sintoniatecnologica" target="_blank">
-            <img src="https://img77.uenicdn.com/image/upload/v1616593172/business/e9f7ad33-268f-4797-b124-6c0f8dc249bb.jpg" alt="Logo">
-        </a>
+    <img src="https://yt3.googleusercontent.com/BZXwZnGs8xXxtad9_H__ch8Bk7DLT7BjEYRXyxRUeimhUwZvJBDyymYrY_slPZtF8ZkuQyF00w=s900-c-k-c0x00ffffff-no-rj" alt="Logo">
+</a>
     </header>
 
     <h1>Leitor de Arquivo de Log</h1>
-    <input type="file" id="fileInput" accept=".log" multiple>
+    <input type="file" id="fileInput" accept=".log" multiple onchange="updateFileLabel()">
     <p id="fileLabel">Nenhum arquivo selecionado</p>
     <div class="btn-container">
-        <button id="btnProcess">Enviar Arquivos</button>
+        <button onclick="processFiles()">Enviar Arquivos</button>
     </div>
 
     <div class="btn-container">
-            <button id="copyTeamsBtn">Copiar Tabela de Equipes</button>
-            <button id="copyPlayersBtn">Copiar Tabela de Jogadores</button>
+        <button class="btn" onclick="copyTable('resultTable')">Copiar Tabela de Equipes</button>
+        <button class="btn" onclick="copyTable('playerTable')">Copiar Tabela de Jogadores</button>
     </div>
 
     <h2>Resultados das Equipes</h2>
-    <p style="text-align:center;"><a href="https://www.youtube.com/@sintoniatecnologica" target="_blank">www.youtube.com/@sintoniatecnologica</a></p>
     <table id="resultTable" class="hidden">
         <thead>
             <tr>
@@ -39,10 +38,13 @@
                 <th>BOOYAH</th>
             </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+            <!-- Conteúdo da tabela será inserido aqui -->
+        </tbody>
     </table>
 
     <h2>Resultados dos Jogadores</h2>
+<p style="text-align:center;"><a href="https://www.youtube.com/@sintoniatecnologica" target="_blank">www.youtube.com/@sintoniatecnologica</a></p>
     <table id="playerTable" class="hidden">
         <thead>
             <tr>
@@ -51,29 +53,14 @@
                 <th>ABATES</th>
             </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+            <!-- Conteúdo da tabela será inserido aqui -->
+        </tbody>
     </table>
 
     <div class="btn-container">
-        <button id="exportExcelBtn">Exportar para XLSX</button>
+        <button onclick="exportToExcel()">Exportar para XLSX</button>
     </div>
 
-    <div id="popupModal" class="popup">
-        <div class="popup-content">
-            <span class="close" onclick="closePopup()">&times;</span>
-            <h2>Ajude nosso projeto!</h2>
-            <p>Visite e se inscreva no nosso canal do YouTube e siga no Instagram:</p>
-            <p>
-                <a href="https://www.youtube.com/@sintoniatecnologica" target="_blank">
-                    <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" width="32"> YouTube
-                </a>
-                &nbsp;&nbsp;
-                <a href="https://www.instagram.com/sintoniatecnologica/" target="_blank">
-                    <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" width="32"> Instagram
-                </a>
-            </p>
-            <button onclick="closePopupAndProcess()">OK</button>
-        </div>
-    </div>
 </body>
 </html>
