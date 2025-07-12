@@ -160,52 +160,26 @@
             }
             window.getSelection().removeAllRanges();
         }
-// Configurações
-const POPUP_INTERVAL = 20 * 60 * 1000; // 20 minutos em milissegundos
-
-// Função para mostrar o popup
+// 1. Função para mostrar popup (já existente)
 function showPopup() {
-    const popup = document.getElementById("popupModal");
-    if (popup) {
-        popup.style.display = "flex";
-        
-        // Agenda o próximo popup
-        const nextTime = Date.now() + POPUP_INTERVAL;
-        try {
-            localStorage.setItem("nextPopupTime", nextTime.toString());
-        } catch (e) {
-            console.log("Modo anônimo - usando timeout apenas");
-        }
-        
-        setTimeout(showPopup, POPUP_INTERVAL);
-    }
+    document.getElementById("popupModal").style.display = "flex";
 }
 
-// Função para fechar
+// 2. Função para fechar (já existente)
 function closePopup() {
-    const popup = document.getElementById("popupModal");
-    if (popup) popup.style.display = "none";
+    document.getElementById("popupModal").style.display = "none";
 }
 
-// Inicialização
+// 3. Novo: Sistema automático a cada 20 minutos
+const POPUP_INTERVAL = 20 * 60 * 1000; // 20 minutos em ms
+
 function initPopupSystem() {
-    let nextTime;
+    // Mostra imediatamente na primeira vez
+    showPopup();
     
-    try {
-        nextTime = localStorage.getItem("nextPopupTime");
-    } catch (e) {
-        nextTime = null;
-    }
-
-    const now = Date.now();
-    
-    if (!nextTime || now >= parseInt(nextTime)) {
-        showPopup();
-    } else {
-        const remainingTime = parseInt(nextTime) - now;
-        setTimeout(showPopup, remainingTime);
-    }
+    // Configura o intervalo para repetir
+    setInterval(showPopup, POPUP_INTERVAL);
 }
 
-// Inicia quando a página carregar
-document.addEventListener("DOMContentLoaded", initPopupSystem);
+// 4. Inicia quando a página carrega
+window.addEventListener('DOMContentLoaded', initPopupSystem);
