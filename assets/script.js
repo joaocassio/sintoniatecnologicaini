@@ -1,1 +1,175 @@
-(function(_0x492643,_0x1f3fc2){const _0x3aa049=_0x2b8e,_0x4951cb=_0x492643();while(!![]){try{const _0x143bb8=parseInt(_0x3aa049(0xf1))/0x1+parseInt(_0x3aa049(0xca))/0x2+parseInt(_0x3aa049(0xec))/0x3+parseInt(_0x3aa049(0xf9))/0x4*(-parseInt(_0x3aa049(0xdb))/0x5)+parseInt(_0x3aa049(0xd7))/0x6+-parseInt(_0x3aa049(0xe4))/0x7*(parseInt(_0x3aa049(0xf0))/0x8)+parseInt(_0x3aa049(0xd2))/0x9;if(_0x143bb8===_0x1f3fc2)break;else _0x4951cb['push'](_0x4951cb['shift']());}catch(_0xffccbe){_0x4951cb['push'](_0x4951cb['shift']());}}}(_0x2b7b,0x4921f));function updateFileLabel(){const _0x290520=_0x2b8e,_0x3ab73e=document[_0x290520(0xfa)](_0x290520(0xe0)),_0x190735=document[_0x290520(0xfa)](_0x290520(0x102));_0x3ab73e['files'][_0x290520(0xe1)]>0x0?_0x190735['textContent']=_0x3ab73e[_0x290520(0xcb)][_0x290520(0xe1)]+_0x290520(0xea):_0x190735[_0x290520(0xf3)]='Nenhum\x20arquivo\x20selecionado';}function processFiles(){const _0x596f12=_0x2b8e,_0x7c4812=document['getElementById'](_0x596f12(0xe0)),_0x316363=_0x7c4812[_0x596f12(0xcb)];if(_0x316363[_0x596f12(0xe1)]===0x0){alert(_0x596f12(0xd5));return;}const _0x3cb5c7={},_0x29f320={};Array[_0x596f12(0xff)](_0x316363)[_0x596f12(0xcd)](_0x3ef797=>{const _0x2d01cc=_0x596f12,_0x468c6a=new FileReader();_0x468c6a['onload']=function(_0x1b38c5){const _0x3df42a=_0x2b8e,_0x16f319=_0x1b38c5['target'][_0x3df42a(0xdd)],_0x356835=_0x16f319['split']('\x0a');_0x356835[_0x3df42a(0xcd)](_0x56e29f=>{const _0x26a60d=_0x3df42a;_0x56e29f=_0x56e29f[_0x26a60d(0xde)](),console[_0x26a60d(0xdc)]('Processing\x20line:',_0x56e29f);const _0x228d2d=_0x56e29f[_0x26a60d(0xcc)](/^TeamName:\s*(.+?)\s+Rank:\s*(\d+)\s+KillScore:\s*(\d+)\s+RankScore:\s*(\d+)\s+TotalScore:\s*(\d+)$/);if(_0x228d2d){const [_0x325d40,_0x3dea85,_0x3b6d88,_0x217307,_0x14cf67,_0x58ff76]=_0x228d2d;!_0x3cb5c7[_0x3dea85]&&(_0x3cb5c7[_0x3dea85]={'kills':0x0,'totalScore':0x0,'booyah':0x0}),_0x3cb5c7[_0x3dea85][_0x26a60d(0xe7)]+=parseInt(_0x217307,0xa),_0x3cb5c7[_0x3dea85][_0x26a60d(0xfb)]+=parseInt(_0x58ff76,0xa),_0x3cb5c7[_0x3dea85][_0x26a60d(0xd6)]+=parseInt(_0x3b6d88,0xa)===0x1?0x1:0x0;}const _0x295e51=_0x56e29f[_0x26a60d(0xcc)](/^NAME:\s*(.+?)\s+ID:\s*\d+\s+KILL:\s*(\d+)$/);if(_0x295e51){const [_0x4e2f62,_0x537cc1,_0x4ca18f]=_0x295e51;!_0x29f320[_0x537cc1]&&(_0x29f320[_0x537cc1]=0x0),_0x29f320[_0x537cc1]+=parseInt(_0x4ca18f,0xa);}}),updateTeamTable(_0x3cb5c7),updatePlayerTable(_0x29f320);},_0x468c6a[_0x2d01cc(0x101)](_0x3ef797);});}function _0x2b8e(_0x6525fc,_0x8fb332){const _0x2b7bac=_0x2b7b();return _0x2b8e=function(_0x2b8e8f,_0xba5638){_0x2b8e8f=_0x2b8e8f-0xca;let _0x2d0f51=_0x2b7bac[_0x2b8e8f];return _0x2d0f51;},_0x2b8e(_0x6525fc,_0x8fb332);}function updateTeamTable(_0x470fa2){const _0x1064a2=_0x2b8e,_0x2f0cef=document[_0x1064a2(0xf6)](_0x1064a2(0xcf));_0x2f0cef['innerHTML']='';const _0x2d8e9f=Object[_0x1064a2(0xe9)](_0x470fa2)[_0x1064a2(0xdf)](_0x102930=>({'name':_0x102930,..._0x470fa2[_0x102930]}))['sort']((_0x42f01e,_0x3c5a41)=>{const _0x2a807e=_0x1064a2;if(_0x3c5a41[_0x2a807e(0xfb)]===_0x42f01e[_0x2a807e(0xfb)])return _0x3c5a41[_0x2a807e(0xe7)]-_0x42f01e[_0x2a807e(0xe7)];return _0x3c5a41[_0x2a807e(0xfb)]-_0x42f01e['totalScore'];});let _0x1065a3=0x1;_0x2d8e9f[_0x1064a2(0xcd)](_0x36f549=>{const _0xc70f9a=_0x1064a2,{name:_0x39ec3f,kills:_0x450ef8,totalScore:_0x3a9f4c,booyah:_0x465b14}=_0x36f549,_0x93539f=document[_0xc70f9a(0xd4)]('tr');_0x93539f[_0xc70f9a(0xe8)]='\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td>'+_0x1065a3++ +'</td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td>'+_0x39ec3f+_0xc70f9a(0xf8)+_0x450ef8+_0xc70f9a(0xf8)+_0x3a9f4c+_0xc70f9a(0xf8)+_0x465b14+_0xc70f9a(0x107),_0x2f0cef['appendChild'](_0x93539f);}),document[_0x1064a2(0xfa)](_0x1064a2(0xfd))['classList'][_0x1064a2(0x105)](_0x1064a2(0x100));}function updatePlayerTable(_0x1ac26b){const _0x22f9e7=_0x2b8e,_0x568f46=document[_0x22f9e7(0xf6)](_0x22f9e7(0x106));_0x568f46[_0x22f9e7(0xe8)]='';const _0x1860d0=Object[_0x22f9e7(0xe9)](_0x1ac26b)['map'](_0x24ef8d=>({'name':_0x24ef8d,'kills':_0x1ac26b[_0x24ef8d]}))['sort']((_0x11d599,_0x6336e9)=>_0x6336e9[_0x22f9e7(0xe7)]-_0x11d599[_0x22f9e7(0xe7)]);let _0x57d449=0x1;_0x1860d0[_0x22f9e7(0xcd)](_0x14d097=>{const _0x56a9ed=_0x22f9e7,{name:_0x2226a8,kills:_0x5c2c3f}=_0x14d097,_0x3b22e2=document[_0x56a9ed(0xd4)]('tr');_0x3b22e2[_0x56a9ed(0xe8)]=_0x56a9ed(0xda)+_0x57d449++ +_0x56a9ed(0xf8)+_0x2226a8+_0x56a9ed(0xf8)+_0x5c2c3f+'</td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20',_0x568f46[_0x56a9ed(0xeb)](_0x3b22e2);}),document[_0x22f9e7(0xfa)](_0x22f9e7(0xce))[_0x22f9e7(0xe2)]['remove'](_0x22f9e7(0x100));}function exportToExcel(){const _0x2160ed=_0x2b8e,_0x262c65=XLSX[_0x2160ed(0xef)]['book_new']();_0x262c65[_0x2160ed(0x104)]={'Title':_0x2160ed(0xfc),'Subject':'Resultados','Author':_0x2160ed(0xf4),'CreatedDate':new Date()};const _0x2fc005=document['getElementById'](_0x2160ed(0xfd)),_0x1c967e=Array[_0x2160ed(0xff)](_0x2fc005[_0x2160ed(0xd9)]('tr'))[_0x2160ed(0xdf)](_0x13a4f7=>Array[_0x2160ed(0xff)](_0x13a4f7[_0x2160ed(0xd9)]('td'))['map'](_0x30c841=>_0x30c841[_0x2160ed(0xf3)])),_0x59d250=XLSX[_0x2160ed(0xef)][_0x2160ed(0xe3)](_0x1c967e);XLSX[_0x2160ed(0xef)][_0x2160ed(0xee)](_0x262c65,_0x59d250,_0x2160ed(0xd1));const _0x3b31b9=document['getElementById'](_0x2160ed(0xce)),_0x2c6227=Array[_0x2160ed(0xff)](_0x3b31b9[_0x2160ed(0xd9)]('tr'))['map'](_0x1d10ba=>Array[_0x2160ed(0xff)](_0x1d10ba[_0x2160ed(0xd9)]('td'))[_0x2160ed(0xdf)](_0xb20954=>_0xb20954[_0x2160ed(0xf3)])),_0x130fcd=XLSX[_0x2160ed(0xef)]['aoa_to_sheet'](_0x2c6227);XLSX[_0x2160ed(0xef)][_0x2160ed(0xee)](_0x262c65,_0x130fcd,_0x2160ed(0xe5)),XLSX[_0x2160ed(0xd3)](_0x262c65,'resultados.xlsx');}function copyTable(_0xa36ec5){const _0x4975db=_0x2b8e,_0x49aa2f=document['getElementById'](_0xa36ec5),_0x2f1e30=document[_0x4975db(0xfe)]();_0x2f1e30[_0x4975db(0x103)](_0x49aa2f),window['getSelection']()[_0x4975db(0xd8)](),window[_0x4975db(0xf2)]()[_0x4975db(0xd0)](_0x2f1e30);try{document[_0x4975db(0xf7)](_0x4975db(0xed)),alert(_0x4975db(0xf5));}catch(_0x305c6d){alert(_0x4975db(0xe6));}window[_0x4975db(0xf2)]()['removeAllRanges']();}function _0x2b7b(){const _0x1c3d7e=['3568TycZlo','246666NQqBSc','getSelection','textContent','Autor','Tabela\x20copiada\x20para\x20a\x20área\x20de\x20transferência!','querySelector','execCommand','</td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td>','27556ckgVXI','getElementById','totalScore','Resultados','resultTable','createRange','from','hidden','readAsText','fileLabel','selectNode','Props','remove','#playerTable\x20tbody','</td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','207158xPxWTY','files','match','forEach','playerTable','#resultTable\x20tbody','addRange','Equipes','3383793FIQaDo','writeFile','createElement','Por\x20favor,\x20selecione\x20um\x20ou\x20mais\x20arquivos.','booyah','2035656dQhSDS','removeAllRanges','querySelectorAll','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td>','415CfiwCc','log','result','trim','map','fileInput','length','classList','aoa_to_sheet','3829xoSyJA','Jogadores','Falha\x20ao\x20copiar\x20tabela.','kills','innerHTML','keys','\x20arquivos\x20selecionados','appendChild','149406owEOJc','copy','book_append_sheet','utils'];_0x2b7b=function(){return _0x1c3d7e;};return _0x2b7b();}
+        // Atualiza o rótulo do arquivo exibido
+        function updateFileLabel() {
+            const input = document.getElementById('fileInput');
+            const fileLabel = document.getElementById('fileLabel');
+
+            if (input.files.length > 0) {
+                fileLabel.textContent = `${input.files.length} arquivos selecionados`;
+            } else {
+                fileLabel.textContent = 'Nenhum arquivo selecionado';
+            }
+        }
+
+        function processFiles() {
+          showPopup();
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+            if (files.length === 0) {
+                alert('Por favor, selecione um ou mais arquivos.');
+                return;
+            }
+
+            const teamData = {};
+            const playerData = {};
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const content = event.target.result;
+                    const lines = content.split('\n');
+
+                    lines.forEach(line => {
+                        line = line.trim();
+                        console.log('Processing line:', line); // Log para depuração
+
+                        // Processamento dos dados das equipes
+                        const teamNameMatch = line.match(/^TeamName:\s*(.+?)\s+Rank:\s*(\d+)\s+KillScore:\s*(\d+)\s+RankScore:\s*(\d+)\s+TotalScore:\s*(\d+)$/);
+                        if (teamNameMatch) {
+                            const [_, name, rank, kills, rankScore, totalScore] = teamNameMatch;
+                            if (!teamData[name]) {
+                                teamData[name] = {
+                                    kills: 0,
+                                    totalScore: 0,
+                                    booyah: 0
+                                };
+                            }
+                            teamData[name].kills += parseInt(kills, 10);
+                            teamData[name].totalScore += parseInt(totalScore, 10);
+                            teamData[name].booyah += (parseInt(rank, 10) === 1) ? 1 : 0;
+                        }
+
+                        // Processamento dos dados dos jogadores
+                        const playerNameMatch = line.match(/^NAME:\s*(.+?)\s+ID:\s*\d+\s+KILL:\s*(\d+)$/);
+                        if (playerNameMatch) {
+                            const [_, playerName, kills] = playerNameMatch;
+                            if (!playerData[playerName]) {
+                                playerData[playerName] = 0;
+                            }
+                            playerData[playerName] += parseInt(kills, 10);
+                        }
+                    });
+
+                    // Atualiza a tabela de equipes
+                    updateTeamTable(teamData);
+                    // Atualiza a tabela de jogadores
+                    updatePlayerTable(playerData);
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        function updateTeamTable(teamData) {
+            const tableBody = document.querySelector('#resultTable tbody');
+            tableBody.innerHTML = '';
+
+            const sortedTeams = Object.keys(teamData).map(team => ({
+                name: team,
+                ...teamData[team]
+            })).sort((a, b) => {
+                if (b.totalScore === a.totalScore) {
+                    return b.kills - a.kills;
+                }
+                return b.totalScore - a.totalScore;
+            });
+
+            let position = 1;
+            sortedTeams.forEach(team => {
+                const { name, kills, totalScore, booyah } = team;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${position++}</td>
+                    <td>${name}</td>
+                    <td>${kills}</td>
+                    <td>${totalScore}</td>
+                    <td>${booyah}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            document.getElementById('resultTable').classList.remove('hidden');
+        }
+
+        function updatePlayerTable(playerData) {
+            const tableBody = document.querySelector('#playerTable tbody');
+            tableBody.innerHTML = '';
+
+            const sortedPlayers = Object.keys(playerData).map(player => ({
+                name: player,
+                kills: playerData[player]
+            })).sort((a, b) => b.kills - a.kills);
+
+            let position = 1;
+            sortedPlayers.forEach(player => {
+                const { name, kills } = player;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${position++}</td>
+                    <td>${name}</td>
+                    <td>${kills}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            document.getElementById('playerTable').classList.remove('hidden');
+        }
+
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            wb.Props = {
+                Title: "Resultados",
+                Subject: "Resultados",
+                Author: "Autor",
+                CreatedDate: new Date()
+            };
+
+            // Adiciona a tabela de equipes
+            const teamTable = document.getElementById('resultTable');
+            const teamData = Array.from(teamTable.querySelectorAll('tr')).map(row => Array.from(row.querySelectorAll('td')).map(cell => cell.textContent));
+            const teamWs = XLSX.utils.aoa_to_sheet(teamData);
+            XLSX.utils.book_append_sheet(wb, teamWs, "Equipes");
+
+            // Adiciona a tabela de jogadores
+            const playerTable = document.getElementById('playerTable');
+            const playerData = Array.from(playerTable.querySelectorAll('tr')).map(row => Array.from(row.querySelectorAll('td')).map(cell => cell.textContent));
+            const playerWs = XLSX.utils.aoa_to_sheet(playerData);
+            XLSX.utils.book_append_sheet(wb, playerWs, "Jogadores");
+
+            XLSX.writeFile(wb, "resultados.xlsx");
+        }
+
+        function copyTable(tableId) {
+            const table = document.getElementById(tableId);
+            const range = document.createRange();
+            range.selectNode(table);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            try {
+                document.execCommand('copy');
+                alert('Tabela copiada para a área de transferência!');
+            } catch (err) {
+                alert('Falha ao copiar tabela.');
+            }
+            window.getSelection().removeAllRanges();
+        }
+function showPopup() {
+    if (!sessionStorage.getItem("popupShown")) {
+        document.getElementById("popupModal").style.display = "flex";
+        sessionStorage.setItem("popupShown", "true");
+    } else {
+        processLogFiles(); // Chama diretamente se popup já foi exibido
+    }
+}
+
+function closePopup() {
+    document.getElementById("popupModal").style.display = "none";
+}
