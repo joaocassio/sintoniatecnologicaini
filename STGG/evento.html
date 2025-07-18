@@ -1,8 +1,19 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Gerenciar Evento</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Detalhes do Evento</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h2>Evento: <span id="evento-nome"></span></h2>
+
+  <button onclick="voltarParaDashboard()">Trocar de Evento</button>
+
+  <h3>Logs Enviados</h3>
+  <div id="lista-logs">Carregando logs...</div>
+
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
@@ -10,81 +21,70 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1aXJwa252eGl5dWthaWxqcW9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NTAyMzMsImV4cCI6MjA2ODEyNjIzM30.5iywisKkY-2UVKHPXKhthyX72E1oz2onteyl6egFBjg'
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    let eventoId = null
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventoId = urlParams.get("evento");
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      const urlParams = new URLSearchParams(window.location.search)
-      eventoId = urlParams.get('id')
-      if (!eventoId) {
-        alert('Evento não especificado.')
-        window.location.href = 'dashboard.html'
-        return
-      }
+    async function carregarEvento() {
+      const { data: evento, error } = await supabase
+        .from('eventos')
+        .select('nome')
+        .eq('id', eventoId)
+        .single();
 
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      if (userError || !userData.user) {
-        alert('Você precisa estar logado.')
-        window.location.href = 'login.html'
-        return
-      }
+      document.getElementById('evento-nome').textContent = evento?.nome || 'Evento não encontrado';
+    }
 
-      carregarEquipes()
-    })
-
-    async function carregarEquipes() {
-      const { data, error } = await supabase
-        .from('equipes')
+    async function carregarLogs() {
+      const { data: logs, error } = await supabase
+        .from('logs')
         .select('*')
         .eq('evento_id', eventoId)
+        .order('created_at', { ascending: false });
 
+      const container = document.getElementById("lista-logs");
       if (error) {
-        alert('Erro ao carregar equipes: ' + error.message)
-        return
+        container.textContent = "Erro ao carregar logs.";
+        return;
       }
 
-      const lista = document.getElementById('listaEquipes')
-      lista.innerHTML = ''
-      data.forEach(eq => {
-        const li = document.createElement('li')
-        li.innerHTML = `<strong>${eq.nome}</strong><br><img src="${eq.logo_url}" width="100"/>`
-        lista.appendChild(li)
-      })
+      if (logs.length === 0) {
+        container.textContent = "Nenhum log encontrado.";
+        return;
+      }
+
+      const tabela = document.createElement("table");
+      tabela.innerHTML = `
+        <tr>
+          <th>Time</th>
+          <th>Kills</th>
+          <th>Booyah</th>
+          <th>Score Total</th>
+          <th>Data</th>
+        </tr>
+      `;
+
+      logs.forEach(log => {
+        const linha = document.createElement("tr");
+        linha.innerHTML = `
+          <td>${log.time}</td>
+          <td>${log.kills}</td>
+          <td>${log.booyah ? 'Sim' : 'Não'}</td>
+          <td>${log.total_score}</td>
+          <td>${new Date(log.created_at).toLocaleString()}</td>
+        `;
+        tabela.appendChild(linha);
+      });
+
+      container.innerHTML = "";
+      container.appendChild(tabela);
     }
 
-    window.adicionarEquipe = async () => {
-      const nome = document.getElementById('nomeEquipe').value.trim()
-      const logo = document.getElementById('logoUrl').value.trim()
-      if (!nome) {
-        alert('Digite o nome da equipe.')
-        return
-      }
-
-      const { error } = await supabase
-        .from('equipes')
-        .insert([{ nome, logo_url: logo, evento_id: eventoId }])
-
-      if (error) {
-        alert('Erro ao adicionar equipe: ' + error.message)
-        return
-      }
-
-      document.getElementById('nomeEquipe').value = ''
-      document.getElementById('logoUrl').value = ''
-      carregarEquipes()
+    function voltarParaDashboard() {
+      window.location.href = 'dashboard.html';
     }
+
+    carregarEvento();
+    carregarLogs();
   </script>
-</head>
-<body>
-  <h1>Gerenciar Equipes do Evento</h1>
-
-  <div>
-    <input type="text" id="nomeEquipe" placeholder="Nome da Equipe" />
-    <input type="url" id="logoUrl" placeholder="URL do Logo" />
-    <button onclick="adicionarEquipe()">Adicionar Equipe</button>
-  </div>
-
-  <ul id="listaEquipes"></ul>
-
-  <p><a href="dashboard.html">← Voltar para meus eventos</a></p>
 </body>
 </html>
