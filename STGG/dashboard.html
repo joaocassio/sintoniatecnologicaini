@@ -46,7 +46,7 @@
         data.forEach(evento => {
           const li = document.createElement('li');
           const link = document.createElement('a');
-          link.href = `leitor_logs.html?evento_id=${evento.id}&evento_nome=${encodeURIComponent(evento.nome)}`;
+          link.href = `index.html?evento_id=${evento.id}&evento_nome=${encodeURIComponent(evento.nome)}`;
           link.textContent = evento.nome;
           li.appendChild(link);
           list.appendChild(li);
