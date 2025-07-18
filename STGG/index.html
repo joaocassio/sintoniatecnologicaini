@@ -71,12 +71,12 @@
       output.textContent = JSON.stringify(data, null, 2);
 
       for (const item of data) {
-        await fetch('https://YOUR_PROJECT.supabase.co/rest/v1/logs', {
+        await fetch('https://tuirpknvxiyukailjqod.supabase.co/rest/v1/logs', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': 'YOUR_SUPABASE_API_KEY',
-            'Authorization': 'Bearer YOUR_SUPABASE_API_KEY',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1aXJwa252eGl5dWthaWxqcW9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NTAyMzMsImV4cCI6MjA2ODEyNjIzM30.5iywisKkY-2UVKHPXKhthyX72E1oz2onteyl6egFBjg',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1aXJwa252eGl5dWthaWxqcW9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NTAyMzMsImV4cCI6MjA2ODEyNjIzM30.5iywisKkY-2UVKHPXKhthyX72E1oz2onteyl6egFBjg',
             'Prefer': 'return=minimal'
           },
           body: JSON.stringify({
