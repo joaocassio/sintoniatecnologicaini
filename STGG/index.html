@@ -2,7 +2,86 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - STGG</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .logo {
+      width: 120px;
+      margin: 0 auto 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #111827;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1e40af;
+    }
+
+    a {
+      display: block;
+      margin-top: 15px;
+      text-decoration: none;
+      color: #2563eb;
+      font-size: 14px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      color: #6b7280;
+      background-color: #f9fafb;
+    }
+  </style>
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
@@ -22,7 +101,6 @@
       if (error) {
         alert('Erro no login: ' + error.message)
       } else {
-        // Salva a sessão localmente
         localStorage.setItem('supabaseSession', JSON.stringify(data))
         alert('Login realizado com sucesso!')
         window.location.href = 'dashboard.html'
@@ -31,10 +109,18 @@
   </script>
 </head>
 <body>
-  <h1>Login</h1>
-  <input type="email" id="email" placeholder="Email" /><br />
-  <input type="password" id="senha" placeholder="Senha" /><br />
-  <button onclick="login()">Entrar</button><br>
-  <a href="cadastro.html">Ainda não tem conta? Cadastre-se</a>
+  <div class="container">
+    <div class="login-box">
+      <img src="https://i.ibb.co/PsS6qpNN/Imagem4.png" alt="Logo" class="logo" />
+      <h1>Login</h1>
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="senha" placeholder="Senha" />
+      <button onclick="login()">Entrar</button>
+      <a href="cadastro.html">Ainda não tem conta? Cadastre-se</a>
+    </div>
+  </div>
+  <footer>
+    STGG - Sintonia Tecnológica - 2025
+  </footer>
 </body>
 </html>
