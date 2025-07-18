@@ -3,114 +3,92 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Painel do Usuário</title>
+  <title>Dashboard | Sintonia Tecnológica</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <!--<link rel="stylesheet" href="style.css" />-->
+  <link rel="stylesheet" href="style.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f2f4f8;
+      background-color: #121212;
+      color: #f0f0f0;
       margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1, h2, h3 {
+      color: #ffffff;
     }
 
     .container {
-      background: white;
-      max-width: 600px;
-      width: 100%;
-      margin-top: 40px;
+      max-width: 700px;
+      margin: auto;
+      background: #1e1e1e;
       padding: 30px;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
     }
 
-    h1 {
-      font-size: 26px;
-      color: #333;
-      margin-bottom: 10px;
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      background: #2e2e2e;
+      color: #fff;
     }
 
-    p#user-email {
-      font-size: 14px;
-      color: #555;
-      margin-bottom: 30px;
+    button {
+      padding: 10px 20px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #00c853;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
     }
 
-    h2, h3 {
-      font-size: 20px;
-      margin-top: 20px;
-      color: #222;
+    button:hover {
+      background: #00b347;
     }
 
     ul#event-list {
       list-style: none;
       padding-left: 0;
-      margin-top: 10px;
     }
 
     ul#event-list li {
-      margin-bottom: 10px;
+      margin-top: 10px;
     }
 
     ul#event-list li a {
-      color: #1e90ff;
+      color: #00e676;
       text-decoration: none;
       font-weight: bold;
     }
 
-    input[type="text"] {
-      padding: 8px;
-      width: 100%;
-      box-sizing: border-box;
-      margin-top: 8px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    button {
-      background-color: #1e90ff;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-right: 10px;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #006edc;
-    }
-
-    .alert {
-      background: #dff0d8;
-      color: #3c763d;
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 15px;
+    ul#event-list li a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🎮 Painel do Usuário</h1>
+    <h1>Painel do Usuário</h1>
     <p id="user-email"></p>
 
-    <h2>📋 Seus Eventos</h2>
+    <h2>Seus Eventos</h2>
     <ul id="event-list"></ul>
 
-    <h3>➕ Criar Novo Evento</h3>
+    <h3>Criar Novo Evento</h3>
     <input type="text" id="new-event-name" placeholder="Nome do evento" />
-    <button onclick="createEvent()">Criar Evento</button>
-    <button onclick="logout()">Sair</button>
+    <button id="btn-criar">Criar Evento</button>
 
-    <div id="alert-box"></div>
+    <br /><br />
+    <button onclick="logout()">Sair</button>
   </div>
 
   <script>
@@ -138,7 +116,7 @@
 
       const list = document.getElementById('event-list');
       list.innerHTML = '';
-      if (data && data.length > 0) {
+      if (data) {
         data.forEach(evento => {
           const li = document.createElement('li');
           const link = document.createElement('a');
@@ -148,7 +126,7 @@
           list.appendChild(li);
         });
       } else {
-        list.innerHTML = '<li>Nenhum evento criado ainda.</li>';
+        console.error(error);
       }
     }
 
@@ -157,7 +135,6 @@
       if (!nome) return alert('Informe um nome válido');
 
       const { data: { session } } = await supabase.auth.getSession();
-
       const { error } = await supabase
         .from('eventos')
         .insert([{ nome, user_id: session.user.id }]);
@@ -167,15 +144,9 @@
         console.error(error);
       } else {
         document.getElementById('new-event-name').value = '';
-        showAlert("Evento criado com sucesso!");
         loadEvents(session.user.id);
+        alert("Evento criado com sucesso!");
       }
-    }
-
-    function showAlert(message) {
-      const alertBox = document.getElementById('alert-box');
-      alertBox.innerHTML = `<div class="alert">${message}</div>`;
-      setTimeout(() => alertBox.innerHTML = '', 3000);
     }
 
     async function logout() {
@@ -183,7 +154,10 @@
       window.location.href = "index.html";
     }
 
-    checkAuth();
+    document.addEventListener("DOMContentLoaded", () => {
+      checkAuth();
+      document.getElementById('btn-criar').addEventListener('click', createEvent);
+    });
   </script>
 </body>
 </html>
