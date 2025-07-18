@@ -1,41 +1,189 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard</title>
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Painel do Usuário</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <!--<link rel="stylesheet" href="style.css" />-->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f4f8;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: white;
+      max-width: 600px;
+      width: 100%;
+      margin-top: 40px;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 26px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    p#user-email {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 30px;
+    }
+
+    h2, h3 {
+      font-size: 20px;
+      margin-top: 20px;
+      color: #222;
+    }
+
+    ul#event-list {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 10px;
+    }
+
+    ul#event-list li {
+      margin-bottom: 10px;
+    }
+
+    ul#event-list li a {
+      color: #1e90ff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    input[type="text"] {
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background-color: #1e90ff;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-right: 10px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #006edc;
+    }
+
+    .alert {
+      background: #dff0d8;
+      color: #3c763d;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 15px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Dashboard</h1>
-  <button onclick="criarEvento()">Criar Evento</button>
-  <button onclick="logout()">Sair</button>
+  <div class="container">
+    <h1>🎮 Painel do Usuário</h1>
+    <p id="user-email"></p>
+
+    <h2>📋 Seus Eventos</h2>
+    <ul id="event-list"></ul>
+
+    <h3>➕ Criar Novo Evento</h3>
+    <input type="text" id="new-event-name" placeholder="Nome do evento" />
+    <button onclick="createEvent()">Criar Evento</button>
+    <button onclick="logout()">Sair</button>
+
+    <div id="alert-box"></div>
+  </div>
 
   <script>
-    const supabase = supabase.createClient("https://tuirpknvxiyukailjqod.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1aXJwa252eGl5dWthaWxqcW9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NTAyMzMsImV4cCI6MjA2ODEyNjIzM30.5iywisKkY-2UVKHPXKhthyX72E1oz2onteyl6egFBjg");
+    const supabase = window.supabase.createClient(
+      'https://tuirpknvxiyukailjqod.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1aXJwa252eGl5dWthaWxqcW9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NTAyMzMsImV4cCI6MjA2ODEyNjIzM30.5iywisKkY-2UVKHPXKhthyX72E1oz2onteyl6egFBjg'
+    );
 
-    const user = JSON.parse(localStorage.getItem("user"));
-
-    function criarEvento() {
-      const nome = prompt("Nome do evento:");
-      if (!nome) return;
-
-      supabase.from("eventos").insert({
-        nome: nome,
-        usuario_id: user.id
-      }).then(({ error }) => {
-        if (error) {
-          alert("Erro ao criar evento: " + error.message);
-        } else {
-          alert("Evento criado com sucesso!");
-          location.reload();
-        }
-      });
+    async function checkAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = "login.html";
+      } else {
+        document.getElementById('user-email').textContent = "Logado como: " + session.user.email;
+        loadEvents(session.user.id);
+      }
     }
 
-    function logout() {
-      localStorage.removeItem("user");
-      window.location.href = "index.html";
+    async function loadEvents(userId) {
+      const { data, error } = await supabase
+        .from('eventos')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      const list = document.getElementById('event-list');
+      list.innerHTML = '';
+      if (data && data.length > 0) {
+        data.forEach(evento => {
+          const li = document.createElement('li');
+          const link = document.createElement('a');
+          link.href = `leitor_logs.html?evento_id=${evento.id}&evento_nome=${encodeURIComponent(evento.nome)}`;
+          link.textContent = evento.nome;
+          li.appendChild(link);
+          list.appendChild(li);
+        });
+      } else {
+        list.innerHTML = '<li>Nenhum evento criado ainda.</li>';
+      }
     }
+
+    async function createEvent() {
+      const nome = document.getElementById('new-event-name').value.trim();
+      if (!nome) return alert('Informe um nome válido');
+
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const { error } = await supabase
+        .from('eventos')
+        .insert([{ nome, user_id: session.user.id }]);
+
+      if (error) {
+        alert("Erro ao criar evento");
+        console.error(error);
+      } else {
+        document.getElementById('new-event-name').value = '';
+        showAlert("Evento criado com sucesso!");
+        loadEvents(session.user.id);
+      }
+    }
+
+    function showAlert(message) {
+      const alertBox = document.getElementById('alert-box');
+      alertBox.innerHTML = `<div class="alert">${message}</div>`;
+      setTimeout(() => alertBox.innerHTML = '', 3000);
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      window.location.href = "login.html";
+    }
+
+    checkAuth();
   </script>
 </body>
 </html>
