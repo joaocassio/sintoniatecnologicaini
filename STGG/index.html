@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leitor de Logs</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body { padding: 2rem; }
+    #event-name { font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4">Leitor de Logs Profissional</h1>
+
+    <div id="event-name">Evento: <span id="selectedEvent">Carregando...</span></div>
+
+    <div class="mb-3">
+      <label for="logFiles" class="form-label">Selecione os arquivos .log</label>
+      <input type="file" id="logFiles" class="form-control" multiple accept=".log">
+    </div>
+
+    <button id="processButton" class="btn btn-primary">Enviar Logs</button>
+
+    <div class="mt-4">
+      <h5>Resumo</h5>
+      <pre id="output" class="bg-light p-3 border"></pre>
+    </div>
+  </div>
+
+  <script>
+    const selectedEventSpan = document.getElementById('selectedEvent');
+    const eventId = localStorage.getItem('selected_event_id');
+    const eventName = localStorage.getItem('selected_event_name');
+
+    if (!eventId || !eventName) {
+      alert('Nenhum evento selecionado. Retornando ao dashboard.');
+      window.location.href = 'dashboard.html';
+    } else {
+      selectedEventSpan.textContent = eventName;
+    }
+
+    const processButton = document.getElementById('processButton');
+    const logFilesInput = document.getElementById('logFiles');
+    const output = document.getElementById('output');
+
+    async function processLogFiles(files) {
+      const results = [];
+
+      for (const file of files) {
+        const content = await file.text();
+        const match = content.match(/TeamName=(.+?)\n[\s\S]*?TotalScore=(\d+)[\s\S]*?KillScore=(\d+)[\s\S]*?Rank=(\d+)/);
+        if (match) {
+          results.push({
+            team: match[1],
+            score: parseInt(match[2]),
+            kills: parseInt(match[3]),
+            rank: parseInt(match[4])
+          });
+        }
+      }
+      return results;
+    }
+
+    processButton.addEventListener('click', async () => {
+      const files = logFilesInput.files;
+      if (!files.length) return alert('Selecione ao menos um arquivo .log');
+
+      const data = await processLogFiles(files);
+      output.textContent = JSON.stringify(data, null, 2);
+
+      for (const item of data) {
+        await fetch('https://YOUR_PROJECT.supabase.co/rest/v1/logs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'YOUR_SUPABASE_API_KEY',
+            'Authorization': 'Bearer YOUR_SUPABASE_API_KEY',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            event_id: eventId,
+            team: item.team,
+            total_score: item.score,
+            kills: item.kills,
+            rank: item.rank
+          })
+        });
+      }
+
+      alert('Logs enviados com sucesso!');
+    });
+  </script>
+</body>
+</html>

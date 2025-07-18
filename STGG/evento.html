@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciar Evento</title>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabaseUrl = 'https://tuirpknvxiyukailjqod.supabase.co'
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1aXJwa252eGl5dWthaWxqcW9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NTAyMzMsImV4cCI6MjA2ODEyNjIzM30.5iywisKkY-2UVKHPXKhthyX72E1oz2onteyl6egFBjg'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    let eventoId = null
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      eventoId = urlParams.get('id')
+      if (!eventoId) {
+        alert('Evento não especificado.')
+        window.location.href = 'dashboard.html'
+        return
+      }
+
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData.user) {
+        alert('Você precisa estar logado.')
+        window.location.href = 'login.html'
+        return
+      }
+
+      carregarEquipes()
+    })
+
+    async function carregarEquipes() {
+      const { data, error } = await supabase
+        .from('equipes')
+        .select('*')
+        .eq('evento_id', eventoId)
+
+      if (error) {
+        alert('Erro ao carregar equipes: ' + error.message)
+        return
+      }
+
+      const lista = document.getElementById('listaEquipes')
+      lista.innerHTML = ''
+      data.forEach(eq => {
+        const li = document.createElement('li')
+        li.innerHTML = `<strong>${eq.nome}</strong><br><img src="${eq.logo_url}" width="100"/>`
+        lista.appendChild(li)
+      })
+    }
+
+    window.adicionarEquipe = async () => {
+      const nome = document.getElementById('nomeEquipe').value.trim()
+      const logo = document.getElementById('logoUrl').value.trim()
+      if (!nome) {
+        alert('Digite o nome da equipe.')
+        return
+      }
+
+      const { error } = await supabase
+        .from('equipes')
+        .insert([{ nome, logo_url: logo, evento_id: eventoId }])
+
+      if (error) {
+        alert('Erro ao adicionar equipe: ' + error.message)
+        return
+      }
+
+      document.getElementById('nomeEquipe').value = ''
+      document.getElementById('logoUrl').value = ''
+      carregarEquipes()
+    }
+  </script>
+</head>
+<body>
+  <h1>Gerenciar Equipes do Evento</h1>
+
+  <div>
+    <input type="text" id="nomeEquipe" placeholder="Nome da Equipe" />
+    <input type="url" id="logoUrl" placeholder="URL do Logo" />
+    <button onclick="adicionarEquipe()">Adicionar Equipe</button>
+  </div>
+
+  <ul id="listaEquipes"></ul>
+
+  <p><a href="dashboard.html">← Voltar para meus eventos</a></p>
+</body>
+</html>

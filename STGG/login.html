@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabaseUrl = 'https://tuirpknvxiyukailjqod.supabase.co'
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1aXJwa252eGl5dWthaWxqcW9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NTAyMzMsImV4cCI6MjA2ODEyNjIzM30.5iywisKkY-2UVKHPXKhthyX72E1oz2onteyl6egFBjg'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    window.login = async () => {
+      const email = document.getElementById('email').value
+      const senha = document.getElementById('senha').value
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: senha
+      })
+
+      if (error) {
+        alert('Erro no login: ' + error.message)
+      } else {
+        // Salva a sessão localmente
+        localStorage.setItem('supabaseSession', JSON.stringify(data))
+        alert('Login realizado com sucesso!')
+        window.location.href = 'dashboard.html'
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Login</h1>
+  <input type="email" id="email" placeholder="Email" /><br />
+  <input type="password" id="senha" placeholder="Senha" /><br />
+  <button onclick="login()">Entrar</button><br>
+  <a href="cadastro.html">Ainda não tem conta? Cadastre-se</a>
+</body>
+</html>
