@@ -15,16 +15,6 @@
 </a>
     </header>
 
-<div id="loginModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000;">
-    <div style="background: white; padding: 20px; border-radius: 5px; text-align: center;">
-        <h2>Acesso Restrito</h2>
-        <input type="password" id="acessoCodigo" placeholder="Digite a senha" style="padding: 10px; margin: 10px 0; width: 80%;">
-        <button onclick="verificarAcesso()" style="padding: 10px 20px; background: #0078d4; color: white; border: none; cursor: pointer;">Acessar</button>
-    </div>
-</div>
-
-
-
     <h1>Leitor de Arquivo de Log</h1>
     <input type="file" id="fileInput" accept=".log" multiple onchange="updateFileLabel()">
     <p id="fileLabel">Nenhum arquivo selecionado</p>
