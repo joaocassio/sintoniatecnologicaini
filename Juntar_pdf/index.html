@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juntar PDF - Sintonia Tecnológica</title>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+    
+    <style>
+        /* --- Campo de Renomeação --- */
+        .rename-section {
+            text-align: left;
+            margin-bottom: 20px;
+            padding: 0 15px; /* Alinha com o conteúdo da lista */
+        }
+
+        .rename-section label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        #fileNameInput {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        #fileNameInput:focus {
+            border-color: #60BB46;
+            outline: none;
+            box-shadow: 0 0 5px rgba(96, 187, 70, 0.5); /* Sombra suave com a cor da marca */
+        }
+        /* Estilos Base e Reset */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            padding: 0; 
+            margin: 0; 
+            background-color: #f4f6f9; /* Fundo suave */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Layout Principal */
+        .container {
+            max-width: 900px;
+            width: 95%;
+            margin: 30px auto;
+            padding: 0 15px;
+            flex-grow: 1; /* Ocupa o espaço central */
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+        }
+
+        /* --- Cabeçalho (Header) --- */
+        header {
+            background-color: #ffffff;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .logo {
+            max-height: 40px; /* Ajuste conforme o tamanho da sua logo */
+        }
+
+        /* --- Rodapé (Footer) --- */
+        footer {
+            background-color: #34495e; /* Fundo escuro para contraste */
+            color: #ecf0f1;
+            text-align: center;
+            padding: 15px 0;
+            margin-top: auto; /* Garante que fique no final da página */
+            font-size: 0.9em;
+        }
+
+        /* --- Design de Cartão (Card) --- */
+        .card {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        /* --- Área de Drop --- */
+        #drop-area { 
+            border: 2px dashed #60BB46; 
+            padding: 40px; 
+            cursor: pointer; 
+            margin-top: 20px;
+            transition: border-color 0.3s, background-color 0.3s;
+            border-radius: 8px;
+        }
+
+        #drop-area:hover {
+            border-color: #4a9435;
+            background-color: #f9fff7;
+        }
+
+        .drop-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 5px;
+        }
+
+        .small-text {
+            font-size: 0.9em;
+            color: #777;
+        }
+
+
+        /* --- Botões --- */
+        .btn { 
+            padding: 12px 25px; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 8px; /* Cantos Arredondados */
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background-color: #60BB46; /* Seu verde personalizado */
+        }
+
+        .btn-primary:hover {
+            background-color: #4a9435; /* Um verde um pouco mais escuro ao passar o mouse */
+            transform: translateY(-1px);
+        }
+
+        .btn-remove {
+            background-color: #e74c3c; /* Vermelho para o botão de remover */
+            padding: 5px 10px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .btn-remove:hover {
+            background-color: #c0392b;
+        }
+
+        /* --- Lista de Arquivos --- */
+        .file-manager {
+            text-align: left;
+        }
+
+        .file-list { 
+            margin-bottom: 20px; 
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto; /* Scroll para muitos arquivos */
+        }
+
+        .file-list div { 
+            padding: 10px 15px; 
+            border-bottom: 1px solid #f4f4f4; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        .file-list div:last-child {
+            border-bottom: none;
+        }
+
+        /* --- Mensagem de Status --- */
+        .status-message {
+            margin-top: 20px; 
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        /* Cor verde para sucesso */
+        .status-message.success-message {
+            color: #1abc9c; /* Um verde brilhante para sucesso */
+        }
+
+        /* Estilo para erro e processamento */
+        .status-message:not(.success-message) {
+            color: #e74c3c; /* Vermelho para erro ou processamento */
+        }
+    </style> 
+</head>
+<body>
+
+    <header>
+        <img src="https://geld.genesisgroup.com.br/admin/assets/images/logo-dark.png" alt="Logo Sintonia Tecnológica" class="logo">
+    </header>
+
+    <main class="container">
+        <div class="card">
+            <h1>Juntar Arquivos PDF e Imagens</h1>
+
+            <div id="drop-area">
+                <input type="file" id="fileInput" accept=".pdf, .jpg, .jpeg, .png" multiple hidden>
+                <p class="drop-text">Arraste e solte arquivos aqui, ou clique para selecionar.</p>
+                <p class="small-text">PDF, JPG e PNG são aceitos.</p>
+            </div>
+        </div>
+
+        <div class="card file-manager">
+            <h2>Arquivos Selecionados (<span id="fileCount">0</span>):</h2>
+            <div class="file-list" id="fileList">
+                <div style="text-align: center; color: #777;">Nenhum arquivo selecionado.</div>
+            </div>
+            
+            <div class="rename-section">
+                <label for="fileNameInput">Nome do Arquivo Final (Ex: ABC1234):</label>
+                <input type="text" id="fileNameInput" placeholder="Ex: ABC1234_Faturamento">
+            </div>
+            <button class="btn btn-primary" onclick="mergePDFs()">
+                Juntar Arquivos e Baixar
+            </button>
+            
+            <p id="status" class="status-message"></p>
+        </div>
+    </main>
+
+    <footer>
+        <p>Juntar PDF - Sintonia Tecnológica</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
