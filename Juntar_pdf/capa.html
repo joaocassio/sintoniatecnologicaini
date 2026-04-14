@@ -34,12 +34,12 @@
     </header>
     <main class="container">
         <div class="card">
-            <h1>Juntar PDFs com Capa</h1>
-            <p style="color:#60BB46;">1 capa no início com placa do primeiro PDF</p>
+            <h1>Juntar PDFs com Capa Automática</h1>
+            <p style="color:#60BB46;">Placa é detectada automaticamente do primeiro PDF</p>
             <div id="drop-area">
                 <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple hidden>
                 <p style="font-size:1.25em; font-weight:bold;">Arraste os arquivos aqui</p>
-                <p>PDFs e imagens serão juntados após a capa</p>
+                <p>Placa será detectada e o nome do arquivo será preenchido automaticamente</p>
             </div>
         </div>
 
@@ -51,7 +51,7 @@
 
             <div style="margin:20px 0;">
                 <label for="fileNameInput" style="font-weight:bold; display:block; margin-bottom:8px;">Nome do arquivo final:</label>
-                <input type="text" id="fileNameInput" placeholder="Ex: Documentos_SPP9B71" style="width:100%; padding:12px; border:1px solid #ccc; border-radius:6px;">
+                <input type="text" id="fileNameInput" placeholder="Placa será preenchida automaticamente..." style="width:100%; padding:12px; border:1px solid #ccc; border-radius:6px;">
             </div>
 
             <button class="btn btn-primary" onclick="mergePDFs()">Criar Capa + Juntar Tudo e Baixar</button>
@@ -86,20 +86,51 @@
             });
         }
 
+        // Extrai placa do PDF
         async function extractPlate(pdfBytes) {
             try {
                 const pdf = await pdfjsLib.getDocument({data: pdfBytes}).promise;
                 let fullText = '';
-                for (let i = 1; i <= Math.min(3, pdf.numPages); i++) {
+                for (let i = 1; i <= Math.min(4, pdf.numPages); i++) {
                     const page = await pdf.getPage(i);
                     const content = await page.getTextContent();
                     fullText += content.items.map(item => item.str).join(' ') + ' ';
                 }
                 const match = fullText.match(/\b([A-Z]{3}\d[A-Z0-9]\d{2}|[A-Z]{3}[-]?\d{4})\b/i);
-                return match ? match[0].toUpperCase().replace(/[^A-Z0-9]/g, '') : 'SEM PLACA';
+                return match ? match[0].toUpperCase().replace(/[^A-Z0-9]/g, '') : null;
             } catch (e) {
-                return 'SEM PLACA';
+                return null;
             }
+        }
+
+        // Atualiza o campo de nome automaticamente quando arquivos são adicionados
+        async function autoFillFileName() {
+            if (selectedFiles.length === 0) return;
+            
+            const firstFile = selectedFiles[0];
+            if (!firstFile.name.toLowerCase().endsWith('.pdf')) return;
+
+            const status = document.getElementById('status');
+            const fileNameInput = document.getElementById('fileNameInput');
+
+            status.textContent = 'Lendo placa do primeiro PDF...';
+            
+            try {
+                const bytes = await firstFile.arrayBuffer();
+                const plate = await extractPlate(bytes);
+                
+                if (plate) {
+                    fileNameInput.value = plate;   // Ex: SPP9B71
+                    // Ou se quiser com sufixo: fileNameInput.value = plate + "_Documentos";
+                    console.log('Placa detectada e campo preenchido:', plate);
+                } else {
+                    fileNameInput.value = '';
+                }
+            } catch (e) {
+                console.warn('Não foi possível ler a placa automaticamente');
+            }
+            
+            status.textContent = '';
         }
 
         async function createCoverPDF(plate) {
@@ -108,46 +139,40 @@
             const { width, height } = page.getSize();
             const green = PDFLib.rgb(96/255, 187/255, 70/255);
 
-            // Bordas modernas
             page.drawRectangle({x: 25, y: 25, width: width-50, height: height-50, borderColor: green, borderWidth: 12});
 
-            // === Tenta carregar a logo real ===
+            // Logo
             let logoLoaded = false;
             try {
                 const logoUrl = "https://www.genesisgroup.com.br/wp-content/themes/genesis/img/simbolo-genesis-verde.png";
-                const response = await fetch(logoUrl, { mode: 'no-cors' }); // tenta mesmo com CORS
-                if (response.ok) {
-                    const logoBytes = await response.arrayBuffer();
-                    const logoImage = await pdfDoc.embedPng(logoBytes);
-                    const scale = 0.85;
-                    const logoW = logoImage.width * scale;
-                    const logoH = logoImage.height * scale;
-                    page.drawImage(logoImage, {
-                        x: (width - logoW) / 2,
-                        y: height - logoH - 65,
-                        width: logoW,
-                        height: logoH
+                const res = await fetch(logoUrl);
+                if (res.ok) {
+                    const logoBytes = await res.arrayBuffer();
+                    const logoImg = await pdfDoc.embedPng(logoBytes);
+                    const scale = 0.82;
+                    page.drawImage(logoImg, {
+                        x: (width - logoImg.width * scale) / 2,
+                        y: height - logoImg.height * scale - 68,
+                        width: logoImg.width * scale,
+                        height: logoImg.height * scale
                     });
                     logoLoaded = true;
                 }
-            } catch (e) {
-                console.log("Logo não carregou (CORS), usando fallback");
-            }
+            } catch (e) {}
 
-            // Fallback se a logo não carregou
             const boldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
             if (!logoLoaded) {
-                page.drawText('GENESIS', {x: width/2 - 110, y: height - 125, size: 52, font: boldFont, color: green});
-                page.drawText('GROUP',   {x: width/2 - 72,  y: height - 170, size: 28, font: boldFont, color: PDFLib.rgb(0.25,0.25,0.25)});
+                page.drawText('GENESIS', {x: width/2 - 108, y: height - 125, size: 52, font: boldFont, color: green});
+                page.drawText('GROUP',   {x: width/2 - 70,  y: height - 170, size: 28, font: boldFont, color: PDFLib.rgb(0.25,0.25,0.25)});
             }
 
-            // PLACA grande e centralizada
+            // PLACA
             page.drawText('PLACA', {x: width/2 - 58, y: height - 255, size: 24, font: boldFont, color: green});
-            page.drawText(plate,   {x: width/2 - (plate.length * 13.5), y: height - 315, size: 48, font: boldFont, color: PDFLib.rgb(0,0,0)});
+            page.drawText(plate || 'SEM PLACA', {x: width/2 - ((plate || 'SEM PLACA').length * 13.5), y: height - 315, size: 48, font: boldFont});
 
-            // Data atual
-            const today = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            page.drawText(today, {x: width/2 - 55, y: height - 375, size: 19, font: boldFont, color: PDFLib.rgb(0.35,0.35,0.35)});
+            // Data
+            const today = new Date().toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric'});
+            page.drawText(today, {x: width/2 - 58, y: height - 375, size: 19, font: boldFont, color: PDFLib.rgb(0.35,0.35,0.35)});
 
             // QR Code
             const qrSize = 190;
@@ -171,7 +196,6 @@
             return pdfDoc;
         }
 
-        // O resto da função mergePDFs, drag & drop, etc. permanece igual à versão anterior
         async function mergePDFs() {
             const status = document.getElementById('status');
             status.textContent = 'Criando capa e juntando arquivos...';
@@ -184,18 +208,19 @@
 
             const finalPdf = await PDFLib.PDFDocument.create();
 
-            // Cria capa com placa do primeiro arquivo
+            // Pega placa do primeiro arquivo (mesmo que já tenha preenchido o campo)
             let plate = 'SEM PLACA';
             if (selectedFiles[0].name.toLowerCase().endsWith('.pdf')) {
                 const bytes = await selectedFiles[0].arrayBuffer();
-                plate = await extractPlate(bytes);
+                plate = await extractPlate(bytes) || 'SEM PLACA';
             }
 
+            // Cria capa
             const coverDoc = await createCoverPDF(plate);
             const coverPages = await finalPdf.copyPages(coverDoc, coverDoc.getPageIndices());
             coverPages.forEach(p => finalPdf.addPage(p));
 
-            // Adiciona todos os arquivos originais
+            // Adiciona todos os arquivos
             let processed = 0;
             for (const file of selectedFiles) {
                 try {
@@ -217,7 +242,7 @@
                     }
                     processed++;
                 } catch (err) {
-                    console.error('Erro ao adicionar arquivo:', file.name);
+                    console.error('Erro ao adicionar:', file.name);
                 }
             }
 
@@ -225,8 +250,10 @@
             const blob = new Blob([finalBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
+            let finalName = document.getElementById('fileNameInput').value.trim();
+            if (!finalName) finalName = plate !== 'SEM PLACA' ? plate : 'Documentos';
+            a.download = finalName + '.pdf';
             a.href = url;
-            a.download = (document.getElementById('fileNameInput').value.trim() || 'Documentos_com_Capa') + '.pdf';
             a.click();
             URL.revokeObjectURL(url);
 
@@ -234,14 +261,17 @@
             status.classList.add('success-message');
         }
 
+        // === Funções de Drag & Drop ===
         function renderFileList() {
             const list = document.getElementById('fileList');
             list.innerHTML = '';
             document.getElementById('fileCount').textContent = selectedFiles.length;
+
             if (selectedFiles.length === 0) {
                 list.innerHTML = '<div style="text-align:center;color:#777;padding:25px;">Nenhum arquivo selecionado.</div>';
                 return;
             }
+
             selectedFiles.forEach((file, i) => {
                 const div = document.createElement('div');
                 div.innerHTML = `${file.name} <small>(${(file.size/1024/1024).toFixed(2)} MB)</small>
@@ -250,7 +280,11 @@
             });
         }
 
-        window.removeFile = (i) => { selectedFiles.splice(i, 1); renderFileList(); };
+        window.removeFile = (i) => { 
+            selectedFiles.splice(i, 1); 
+            renderFileList();
+            if (selectedFiles.length > 0) autoFillFileName(); // reprocessa se ainda tiver arquivos
+        };
 
         function handleFiles(files) {
             for (let file of files) {
@@ -260,11 +294,13 @@
                 }
             }
             renderFileList();
+            autoFillFileName();   // ← Aqui é onde acontece a mágica automática
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             const dropArea = document.getElementById('drop-area');
             const fileInput = document.getElementById('fileInput');
+
             dropArea.addEventListener('click', () => fileInput.click());
             dropArea.addEventListener('dragover', e => {e.preventDefault(); dropArea.style.borderColor = '#4a9435';});
             dropArea.addEventListener('dragleave', () => dropArea.style.borderColor = '#60BB46');
