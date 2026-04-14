@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juntar PDFs com Capa - Sintonia Tecnológica</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        body {font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin:0; background:#f4f6f9; color:#333; min-height:100vh; display:flex; flex-direction:column;}
+        .container {max-width:920px; width:95%; margin:30px auto; flex-grow:1;}
+        header {background:#fff; padding:15px 0; box-shadow:0 2px 4px rgba(0,0,0,0.05); text-align:center;}
+        .logo-header {max-height:42px;}
+        footer {background:#34495e; color:#ecf0f1; text-align:center; padding:15px 0; margin-top:auto;}
+        .card {background:#fff; padding:30px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); margin-bottom:25px;}
+        #drop-area {border:2px dashed #60BB46; padding:45px; cursor:pointer; border-radius:10px; transition:all 0.3s;}
+        #drop-area:hover {border-color:#4a9435; background:#f9fff7;}
+        .btn {padding:14px 28px; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;}
+        .btn-primary {background:#60BB46; width:100%; font-size:1.1em;}
+        .btn-primary:hover {background:#4a9435;}
+        .btn-remove {background:#e74c3c; padding:6px 12px; font-size:0.85em;}
+        .file-list {border:1px solid #ddd; border-radius:8px; max-height:320px; overflow-y:auto;}
+        .file-list div {padding:12px 15px; border-bottom:1px solid #f0f0f0; display:flex; justify-content:space-between; align-items:center;}
+        .status-message {margin-top:20px; font-weight:bold; font-size:1.05em;}
+        .success-message {color:#1abc9c;}
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://geld.genesisgroup.com.br/admin/assets/images/logo-dark.png" alt="Sintonia" class="logo-header">
+    </header>
+    <main class="container">
+        <div class="card">
+            <h1>Juntar PDFs com Capa</h1>
+            <p style="color:#60BB46;">1 capa no início com placa do primeiro PDF</p>
+            <div id="drop-area">
+                <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple hidden>
+                <p style="font-size:1.25em; font-weight:bold;">Arraste os arquivos aqui</p>
+                <p>PDFs e imagens serão juntados após a capa</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Arquivos Selecionados (<span id="fileCount">0</span>)</h2>
+            <div class="file-list" id="fileList">
+                <div style="text-align:center; color:#777; padding:25px;">Nenhum arquivo selecionado.</div>
+            </div>
+
+            <div style="margin:20px 0;">
+                <label for="fileNameInput" style="font-weight:bold; display:block; margin-bottom:8px;">Nome do arquivo final:</label>
+                <input type="text" id="fileNameInput" placeholder="Ex: Documentos_SPP9B71" style="width:100%; padding:12px; border:1px solid #ccc; border-radius:6px;">
+            </div>
+
+            <button class="btn btn-primary" onclick="mergePDFs()">Criar Capa + Juntar Tudo e Baixar</button>
+            <p id="status" class="status-message"></p>
+        </div>
+    </main>
+    <footer><p>Juntar PDF com Capa - Sintonia Tecnológica</p></footer>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        let selectedFiles = [];
+
+        function dataURLtoUint8Array(dataURL) {
+            const byteString = atob(dataURL.split(',')[1]);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+            return ia;
+        }
+
+        async function generateQRDataURL() {
+            return new Promise(resolve => {
+                const div = document.createElement('div');
+                div.style.position = 'absolute'; div.style.left = '-99999px';
+                document.body.appendChild(div);
+                new QRCode(div, {text: "https://wa.me/5566996538419", width: 260, height: 260});
+                setTimeout(() => {
+                    const canvas = div.querySelector('canvas');
+                    resolve(canvas ? canvas.toDataURL('image/png') : null);
+                    document.body.removeChild(div);
+                }, 180);
+            });
+        }
+
+        async function extractPlate(pdfBytes) {
+            try {
+                const pdf = await pdfjsLib.getDocument({data: pdfBytes}).promise;
+                let fullText = '';
+                for (let i = 1; i <= Math.min(3, pdf.numPages); i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    fullText += content.items.map(item => item.str).join(' ') + ' ';
+                }
+                const match = fullText.match(/\b([A-Z]{3}\d[A-Z0-9]\d{2}|[A-Z]{3}[-]?\d{4})\b/i);
+                return match ? match[0].toUpperCase().replace(/[^A-Z0-9]/g, '') : 'SEM PLACA';
+            } catch (e) {
+                return 'SEM PLACA';
+            }
+        }
+
+        async function createCoverPDF(plate) {
+            const pdfDoc = await PDFLib.PDFDocument.create();
+            const page = pdfDoc.addPage(PDFLib.PageSizes.A4);
+            const { width, height } = page.getSize();
+            const green = PDFLib.rgb(96/255, 187/255, 70/255);
+
+            // Bordas modernas
+            page.drawRectangle({x: 25, y: 25, width: width-50, height: height-50, borderColor: green, borderWidth: 12});
+
+            // === Tenta carregar a logo real ===
+            let logoLoaded = false;
+            try {
+                const logoUrl = "https://www.genesisgroup.com.br/wp-content/themes/genesis/img/simbolo-genesis-verde.png";
+                const response = await fetch(logoUrl, { mode: 'no-cors' }); // tenta mesmo com CORS
+                if (response.ok) {
+                    const logoBytes = await response.arrayBuffer();
+                    const logoImage = await pdfDoc.embedPng(logoBytes);
+                    const scale = 0.85;
+                    const logoW = logoImage.width * scale;
+                    const logoH = logoImage.height * scale;
+                    page.drawImage(logoImage, {
+                        x: (width - logoW) / 2,
+                        y: height - logoH - 65,
+                        width: logoW,
+                        height: logoH
+                    });
+                    logoLoaded = true;
+                }
+            } catch (e) {
+                console.log("Logo não carregou (CORS), usando fallback");
+            }
+
+            // Fallback se a logo não carregou
+            const boldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+            if (!logoLoaded) {
+                page.drawText('GENESIS', {x: width/2 - 110, y: height - 125, size: 52, font: boldFont, color: green});
+                page.drawText('GROUP',   {x: width/2 - 72,  y: height - 170, size: 28, font: boldFont, color: PDFLib.rgb(0.25,0.25,0.25)});
+            }
+
+            // PLACA grande e centralizada
+            page.drawText('PLACA', {x: width/2 - 58, y: height - 255, size: 24, font: boldFont, color: green});
+            page.drawText(plate,   {x: width/2 - (plate.length * 13.5), y: height - 315, size: 48, font: boldFont, color: PDFLib.rgb(0,0,0)});
+
+            // Data atual
+            const today = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            page.drawText(today, {x: width/2 - 55, y: height - 375, size: 19, font: boldFont, color: PDFLib.rgb(0.35,0.35,0.35)});
+
+            // QR Code
+            const qrSize = 190;
+            const qrY = 195;
+            page.drawText('Escaneie o QRCODE para saber sobre agendamentos', {
+                x: (width - 395)/2, y: qrY + qrSize + 35, size: 13.5, font: await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica)
+            });
+
+            try {
+                const qrData = await generateQRDataURL();
+                if (qrData) {
+                    const qrImg = await pdfDoc.embedPng(dataURLtoUint8Array(qrData));
+                    page.drawImage(qrImg, {x: (width - qrSize)/2, y: qrY, width: qrSize, height: qrSize});
+                }
+            } catch(e) {}
+
+            page.drawText('ou salve o número +55 66 99653-8419', {
+                x: (width - 325)/2, y: qrY - 38, size: 14.5, font: boldFont
+            });
+
+            return pdfDoc;
+        }
+
+        // O resto da função mergePDFs, drag & drop, etc. permanece igual à versão anterior
+        async function mergePDFs() {
+            const status = document.getElementById('status');
+            status.textContent = 'Criando capa e juntando arquivos...';
+            status.classList.remove('success-message');
+
+            if (selectedFiles.length === 0) {
+                status.textContent = 'Selecione pelo menos um arquivo!';
+                return;
+            }
+
+            const finalPdf = await PDFLib.PDFDocument.create();
+
+            // Cria capa com placa do primeiro arquivo
+            let plate = 'SEM PLACA';
+            if (selectedFiles[0].name.toLowerCase().endsWith('.pdf')) {
+                const bytes = await selectedFiles[0].arrayBuffer();
+                plate = await extractPlate(bytes);
+            }
+
+            const coverDoc = await createCoverPDF(plate);
+            const coverPages = await finalPdf.copyPages(coverDoc, coverDoc.getPageIndices());
+            coverPages.forEach(p => finalPdf.addPage(p));
+
+            // Adiciona todos os arquivos originais
+            let processed = 0;
+            for (const file of selectedFiles) {
+                try {
+                    const bytes = await file.arrayBuffer();
+                    if (file.name.toLowerCase().endsWith('.pdf')) {
+                        const doc = await PDFLib.PDFDocument.load(bytes);
+                        const pages = await finalPdf.copyPages(doc, doc.getPageIndices());
+                        pages.forEach(p => finalPdf.addPage(p));
+                    } else {
+                        let img = file.name.toLowerCase().match(/\.(jpe?g)$/i) ? await finalPdf.embedJpg(bytes) : await finalPdf.embedPng(bytes);
+                        const page = finalPdf.addPage(PDFLib.PageSizes.A4);
+                        const scale = Math.min(page.getWidth() * 0.92 / img.width, page.getHeight() * 0.92 / img.height);
+                        page.drawImage(img, {
+                            x: (page.getWidth() - img.width * scale) / 2,
+                            y: (page.getHeight() - img.height * scale) / 2,
+                            width: img.width * scale,
+                            height: img.height * scale
+                        });
+                    }
+                    processed++;
+                } catch (err) {
+                    console.error('Erro ao adicionar arquivo:', file.name);
+                }
+            }
+
+            const finalBytes = await finalPdf.save();
+            const blob = new Blob([finalBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (document.getElementById('fileNameInput').value.trim() || 'Documentos_com_Capa') + '.pdf';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            status.innerHTML = `✅ Pronto!<br>Capa criada com placa: <strong>${plate}</strong><br>${processed} arquivo(s) juntados.`;
+            status.classList.add('success-message');
+        }
+
+        function renderFileList() {
+            const list = document.getElementById('fileList');
+            list.innerHTML = '';
+            document.getElementById('fileCount').textContent = selectedFiles.length;
+            if (selectedFiles.length === 0) {
+                list.innerHTML = '<div style="text-align:center;color:#777;padding:25px;">Nenhum arquivo selecionado.</div>';
+                return;
+            }
+            selectedFiles.forEach((file, i) => {
+                const div = document.createElement('div');
+                div.innerHTML = `${file.name} <small>(${(file.size/1024/1024).toFixed(2)} MB)</small>
+                                 <button class="btn-remove" onclick="removeFile(${i})">Remover</button>`;
+                list.appendChild(div);
+            });
+        }
+
+        window.removeFile = (i) => { selectedFiles.splice(i, 1); renderFileList(); };
+
+        function handleFiles(files) {
+            for (let file of files) {
+                const ext = file.name.toLowerCase();
+                if (ext.endsWith('.pdf') || ext.endsWith('.jpg') || ext.endsWith('.jpeg') || ext.endsWith('.png')) {
+                    selectedFiles.push(file);
+                }
+            }
+            renderFileList();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropArea = document.getElementById('drop-area');
+            const fileInput = document.getElementById('fileInput');
+            dropArea.addEventListener('click', () => fileInput.click());
+            dropArea.addEventListener('dragover', e => {e.preventDefault(); dropArea.style.borderColor = '#4a9435';});
+            dropArea.addEventListener('dragleave', () => dropArea.style.borderColor = '#60BB46');
+            dropArea.addEventListener('drop', e => {e.preventDefault(); handleFiles(e.dataTransfer.files); dropArea.style.borderColor = '#60BB46';});
+            fileInput.addEventListener('change', e => {handleFiles(e.target.files); e.target.value = '';});
+        });
+    </script>
+</body>
+</html>
