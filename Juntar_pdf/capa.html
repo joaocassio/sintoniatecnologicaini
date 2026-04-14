@@ -87,6 +87,15 @@
                 <div style="text-align:center; color:#777; padding:25px;">Nenhum arquivo selecionado.</div>
             </div>
 
+            <!-- Checkbox para incluir Capa -->
+            <div class="checkbox-container">
+                <input type="checkbox" id="includeCover" checked>
+                <label for="includeCover">
+                    Incluir Capa Personalizada
+                    <small>(com logo, placa e QR Code)</small>
+                </label>
+            </div>
+
             <!-- Checkbox para Protocolo de Entrega -->
             <div class="checkbox-container">
                 <input type="checkbox" id="includeProtocol" checked>
@@ -118,12 +127,15 @@
             return ia;
         }
 
-        async function generateQRDataURL() {
+        async function generateQRDataURL(plate) {
             return new Promise(resolve => {
                 const div = document.createElement('div');
                 div.style.position = 'absolute'; div.style.left = '-99999px';
                 document.body.appendChild(div);
-                new QRCode(div, { text: "https://wa.me/5566996538419", width: 260, height: 260 });
+                // Mensagem dinâmica com a placa
+                const whatsappMessage = `Verificar placa: ${plate}`;
+                const whatsappUrl = `https://wa.me/5566996538419?text=${encodeURIComponent(whatsappMessage)}`;
+                new QRCode(div, { text: whatsappUrl, width: 260, height: 260 });
                 setTimeout(() => {
                     const canvas = div.querySelector('canvas');
                     resolve(canvas ? canvas.toDataURL('image/png') : null);
@@ -284,7 +296,8 @@
             });
 
             try {
-                const qrData = await generateQRDataURL();
+                // Gera QR Code com mensagem personalizada da placa
+                const qrData = await generateQRDataURL(plateText);
                 if (qrData) {
                     const qrImg = await pdfDoc.embedPng(dataURLtoUint8Array(qrData));
                     page.drawImage(qrImg, { 
@@ -315,7 +328,7 @@
 
         async function mergePDFs() {
             const status = document.getElementById('status');
-            status.textContent = 'Criando capa e juntando arquivos...';
+            status.textContent = 'Processando arquivos...';
             status.classList.remove('success-message');
 
             if (selectedFiles.length === 0) {
@@ -325,17 +338,26 @@
 
             const finalPdf = await PDFLib.PDFDocument.create();
 
-            // Pega placa para a capa
+            // Pega placa para a capa (se necessário)
             let plate = 'SEM PLACA';
             if (selectedFiles[0].name.toLowerCase().endsWith('.pdf')) {
                 const bytes = await selectedFiles[0].arrayBuffer();
                 plate = await extractPlate(bytes) || 'SEM PLACA';
             }
 
-            // Cria capa
-            const coverDoc = await createCoverPDF(plate);
-            const coverPages = await finalPdf.copyPages(coverDoc, coverDoc.getPageIndices());
-            coverPages.forEach(p => finalPdf.addPage(p));
+            // Verifica se deve incluir a Capa
+            const includeCover = document.getElementById('includeCover').checked;
+            
+            if (includeCover) {
+                status.textContent = 'Criando capa personalizada...';
+                // Cria capa
+                const coverDoc = await createCoverPDF(plate);
+                const coverPages = await finalPdf.copyPages(coverDoc, coverDoc.getPageIndices());
+                coverPages.forEach(p => finalPdf.addPage(p));
+                console.log('✅ Capa adicionada');
+            } else {
+                console.log('ℹ️ Capa não incluída (usuário optou por não adicionar)');
+            }
 
             // Adiciona todos os arquivos originais selecionados
             let processed = 0;
@@ -390,8 +412,9 @@
             a.click();
             URL.revokeObjectURL(url);
 
+            let coverMsg = includeCover ? ' + Capa' : '';
             let protocolMsg = includeProtocol ? ' + Protocolo' : '';
-            status.innerHTML = `✅ Pronto!<br>Capa criada com placa: <strong>${plate}</strong><br>${processed} arquivo(s) juntados${protocolMsg}.`;
+            status.innerHTML = `✅ Pronto!<br>Placa: <strong>${plate}</strong><br>${processed} arquivo(s) juntados${coverMsg}${protocolMsg}.`;
             status.classList.add('success-message');
         }
 
