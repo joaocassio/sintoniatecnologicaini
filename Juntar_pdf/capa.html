@@ -152,13 +152,14 @@
                     return res.arrayBuffer();
                 });
                 const logoImage = await pdfDoc.embedPng(logoBytes);
-                const scale = 0.85;
+                const logoMaxWidth = 220;
+                const scale = logoMaxWidth / logoImage.width;
                 const logoW = logoImage.width * scale;
                 const logoH = logoImage.height * scale;
 
                 page.drawImage(logoImage, {
                     x: (width - logoW) / 2,
-                    y: height - logoH - 65,
+                    y: height - logoH - 50,
                     width: logoW,
                     height: logoH
                 });
@@ -169,44 +170,90 @@
             }
 
             const boldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+            const regularFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
 
             // Fallback se a logo não carregar
             if (!logoLoaded) {
-                page.drawText('GENESIS', { x: width/2 - 110, y: height - 125, size: 52, font: boldFont, color: green });
-                page.drawText('GROUP',   { x: width/2 - 72,  y: height - 170, size: 28, font: boldFont, color: PDFLib.rgb(0.25,0.25,0.25) });
+                page.drawText('GENESIS', { x: width/2 - 110, y: height - 100, size: 52, font: boldFont, color: green });
+                page.drawText('GROUP',   { x: width/2 - 72,  y: height - 145, size: 28, font: boldFont, color: PDFLib.rgb(0.25,0.25,0.25) });
             }
 
-            // PLACA
-            page.drawText('PLACA', { x: width/2 - 58, y: height - 255, size: 24, font: boldFont, color: green });
-            page.drawText(plate || 'SEM PLACA', {
-                x: width/2 - ((plate || 'SEM PLACA').length * 13.8),
-                y: height - 315,
-                size: 48,
-                font: boldFont
+            // Posições ajustadas para centralização correta
+            const startY = logoLoaded ? height - 190 : height - 200;
+            
+            // PLACA (centralizado)
+            const plateText = plate || 'SEM PLACA';
+            const plateFontSize = 48;
+            const plateWidth = boldFont.widthOfTextAtSize(plateText, plateFontSize);
+            page.drawText('PLACA', { 
+                x: (width - boldFont.widthOfTextAtSize('PLACA', 24)) / 2, 
+                y: startY, 
+                size: 24, 
+                font: boldFont, 
+                color: green 
+            });
+            
+            page.drawText(plateText, {
+                x: (width - plateWidth) / 2,
+                y: startY - 55,
+                size: plateFontSize,
+                font: boldFont,
+                color: PDFLib.rgb(0, 0, 0)
             });
 
-            // Data atual
+            // Data atual (centralizado)
             const today = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            page.drawText(today, { x: width/2 - 58, y: height - 375, size: 19, font: boldFont, color: PDFLib.rgb(0.35,0.35,0.35) });
+            const dateFontSize = 22;
+            const dateWidth = boldFont.widthOfTextAtSize(today, dateFontSize);
+            page.drawText(today, { 
+                x: (width - dateWidth) / 2, 
+                y: startY - 110, 
+                size: dateFontSize, 
+                font: boldFont, 
+                color: PDFLib.rgb(0.35, 0.35, 0.35) 
+            });
 
-            // QR Code
-            const qrSize = 190;
-            const qrY = 195;
-            page.drawText('Escaneie o QRCODE para saber sobre agendamentos', {
-                x: (width - 395)/2, y: qrY + qrSize + 35, size: 13.5,
-                font: await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica)
+            // QR Code e textos (centralizados)
+            const qrSize = 200;
+            const qrY = 160;
+            
+            // Texto acima do QR Code
+            const qrLabel = 'Escaneie o QRCODE para saber sobre agendamentos';
+            const qrLabelSize = 13;
+            const qrLabelWidth = regularFont.widthOfTextAtSize(qrLabel, qrLabelSize);
+            page.drawText(qrLabel, {
+                x: (width - qrLabelWidth) / 2,
+                y: qrY + qrSize + 28,
+                size: qrLabelSize,
+                font: regularFont,
+                color: PDFLib.rgb(0.2, 0.2, 0.2)
             });
 
             try {
                 const qrData = await generateQRDataURL();
                 if (qrData) {
                     const qrImg = await pdfDoc.embedPng(dataURLtoUint8Array(qrData));
-                    page.drawImage(qrImg, { x: (width - qrSize)/2, y: qrY, width: qrSize, height: qrSize });
+                    page.drawImage(qrImg, { 
+                        x: (width - qrSize) / 2, 
+                        y: qrY, 
+                        width: qrSize, 
+                        height: qrSize 
+                    });
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.warn('Erro ao gerar QR Code:', e);
+            }
 
-            page.drawText('ou salve o número +55 66 99653-8419', {
-                x: (width - 325)/2, y: qrY - 38, size: 14.5, font: boldFont
+            // Texto abaixo do QR Code
+            const phoneText = 'ou salve o número +55 66 99653-8419';
+            const phoneSize = 13;
+            const phoneWidth = regularFont.widthOfTextAtSize(phoneText, phoneSize);
+            page.drawText(phoneText, {
+                x: (width - phoneWidth) / 2,
+                y: qrY - 28,
+                size: phoneSize,
+                font: boldFont,
+                color: green
             });
 
             return pdfDoc;
