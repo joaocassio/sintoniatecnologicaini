@@ -29,10 +29,13 @@
             border-radius: 10px; transition: all 0.3s;
         }
         #drop-area:hover { border-color: #4a9435; background: #f9fff7; }
-        .btn { padding: 14px 28px; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn { padding: 14px 28px; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
         .btn-primary { background: #60BB46; width: 100%; font-size: 1.1em; }
-        .btn-primary:hover { background: #4a9435; }
+        .btn-primary:hover { background: #4a9435; transform: translateY(-2px); }
+        .btn-clear { background: #e67e22; width: 100%; font-size: 1.1em; margin-top: 10px; }
+        .btn-clear:hover { background: #d35400; transform: translateY(-2px); }
         .btn-remove { background: #e74c3c; padding: 6px 12px; font-size: 0.85em; }
+        .btn-remove:hover { background: #c0392b; }
         .file-list { border: 1px solid #ddd; border-radius: 8px; max-height: 320px; overflow-y: auto; }
         .file-list div { padding: 12px 15px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
         .status-message { margin-top: 20px; font-weight: bold; font-size: 1.05em; }
@@ -63,6 +66,15 @@
             color: #666;
             margin-left: 8px;
             font-weight: normal;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .button-group .btn {
+            flex: 1;
+            margin-top: 0;
         }
     </style>
 </head>
@@ -109,7 +121,10 @@
                 <input type="text" id="fileNameInput" placeholder="Placa será preenchida automaticamente..." style="width:100%; padding:12px; border:1px solid #ccc; border-radius:6px;">
             </div>
 
-            <button class="btn btn-primary" onclick="mergePDFs()">Juntar e Baixar</button>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="mergePDFs()">Juntar e Baixar</button>
+                <button class="btn btn-clear" onclick="clearAll()">Limpar Tudo</button>
+            </div>
             <p id="status" class="status-message"></p>
         </div>
     </main>
@@ -326,6 +341,36 @@
             return pdfDoc;
         }
 
+        // Função para limpar tudo
+        window.clearAll = () => {
+            // Limpa a lista de arquivos
+            selectedFiles = [];
+            renderFileList();
+            
+            // Limpa o campo de nome do arquivo
+            document.getElementById('fileNameInput').value = '';
+            
+            // Reseta os checkboxes para os valores padrão
+            document.getElementById('includeCover').checked = true;
+            document.getElementById('includeProtocol').checked = true;
+            
+            // Limpa a mensagem de status
+            const status = document.getElementById('status');
+            status.innerHTML = '';
+            status.classList.remove('success-message');
+            
+            // Mostra mensagem temporária de confirmação
+            status.innerHTML = '🗑️ Tudo limpo! Você pode adicionar novos arquivos.';
+            status.style.color = '#e67e22';
+            setTimeout(() => {
+                if (status.innerHTML === '🗑️ Tudo limpo! Você pode adicionar novos arquivos.') {
+                    status.innerHTML = '';
+                }
+            }, 3000);
+            
+            console.log('✅ Todos os arquivos e campos foram limpos');
+        };
+
         async function mergePDFs() {
             const status = document.getElementById('status');
             status.textContent = 'Processando arquivos...';
@@ -440,6 +485,10 @@
             selectedFiles.splice(i, 1); 
             renderFileList();
             if (selectedFiles.length > 0) autoFillFileName();
+            else {
+                // Se não houver mais arquivos, limpa o campo de nome
+                document.getElementById('fileNameInput').value = '';
+            }
         };
 
         function handleFiles(files) {
