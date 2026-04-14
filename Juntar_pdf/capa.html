@@ -33,6 +33,33 @@
         .file-list div { padding: 12px 15px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
         .status-message { margin-top: 20px; font-weight: bold; font-size: 1.05em; }
         .success-message { color: #1abc9c; }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9fff7;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .checkbox-container input {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #60BB46;
+        }
+        .checkbox-container label {
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            font-size: 1.05em;
+        }
+        .checkbox-container small {
+            color: #666;
+            margin-left: 8px;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
@@ -42,7 +69,7 @@
     <main class="container">
         <div class="card">
             <h1>Juntar PDFs com Capa Automática</h1>
-            <p style="color:#60BB46;">Placa detectada automaticamente • Logo local</p>
+            <p style="color:#60BB46;">Placa detectada automaticamente • Logo local • Protocolo opcional</p>
             <div id="drop-area">
                 <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple hidden>
                 <p style="font-size:1.25em; font-weight:bold;">Arraste os arquivos aqui</p>
@@ -54,6 +81,15 @@
             <h2>Arquivos Selecionados (<span id="fileCount">0</span>)</h2>
             <div class="file-list" id="fileList">
                 <div style="text-align:center; color:#777; padding:25px;">Nenhum arquivo selecionado.</div>
+            </div>
+
+            <!-- Checkbox para Protocolo de Entrega -->
+            <div class="checkbox-container">
+                <input type="checkbox" id="includeProtocol" checked>
+                <label for="includeProtocol">
+                    Incluir Protocolo de Entrega
+                    <small>(protocolo.pdf na mesma pasta)</small>
+                </label>
             </div>
 
             <div style="margin:20px 0;">
@@ -134,6 +170,21 @@
             status.textContent = '';
         }
 
+        async function loadProtocolPDF() {
+            try {
+                const protocolBytes = await fetch('./protocolo.pdf').then(res => {
+                    if (!res.ok) throw new Error('Protocolo não encontrado');
+                    return res.arrayBuffer();
+                });
+                const protocolDoc = await PDFLib.PDFDocument.load(protocolBytes);
+                console.log('✅ Protocolo de Entrega carregado');
+                return protocolDoc;
+            } catch (e) {
+                console.warn('⚠️ Protocolo de Entrega não encontrado:', e);
+                return null;
+            }
+        }
+
         async function createCoverPDF(plate) {
             const pdfDoc = await PDFLib.PDFDocument.create();
             const page = pdfDoc.addPage(PDFLib.PageSizes.A4);
@@ -143,17 +194,17 @@
             // Bordas
             page.drawRectangle({ x: 25, y: 25, width: width - 50, height: height - 50, borderColor: green, borderWidth: 12 });
 
-            // === Logo Local (mesma pasta do projeto) ===
+            // === Logo Local (tamanho ajustado para 60 de altura) ===
             let logoLoaded = false;
             try {
-                // Carrega a logo localmente (GitHub Pages)
                 const logoBytes = await fetch('./simbolo-genesis-verde.png').then(res => {
                     if (!res.ok) throw new Error('Logo não encontrada');
                     return res.arrayBuffer();
                 });
                 const logoImage = await pdfDoc.embedPng(logoBytes);
-                const logoMaxWidth = 220;
-                const scale = logoMaxWidth / logoImage.width;
+                // Ajustar altura para 60, manter proporção
+                const targetHeight = 60;
+                const scale = targetHeight / logoImage.height;
                 const logoW = logoImage.width * scale;
                 const logoH = logoImage.height * scale;
 
@@ -164,7 +215,7 @@
                     height: logoH
                 });
                 logoLoaded = true;
-                console.log('✅ Logo carregada com sucesso (local)');
+                console.log('✅ Logo carregada com sucesso (tamanho 60)');
             } catch (e) {
                 console.log('⚠️ Logo local não carregada, usando fallback');
             }
@@ -179,7 +230,7 @@
             }
 
             // Posições ajustadas para centralização correta
-            const startY = logoLoaded ? height - 190 : height - 200;
+            const startY = height - 170;
             
             // PLACA (centralizado)
             const plateText = plate || 'SEM PLACA';
@@ -283,7 +334,7 @@
             const coverPages = await finalPdf.copyPages(coverDoc, coverDoc.getPageIndices());
             coverPages.forEach(p => finalPdf.addPage(p));
 
-            // Adiciona todos os arquivos originais
+            // Adiciona todos os arquivos originais selecionados
             let processed = 0;
             for (const file of selectedFiles) {
                 try {
@@ -311,6 +362,20 @@
                 }
             }
 
+            // Verifica se deve incluir o Protocolo de Entrega
+            const includeProtocol = document.getElementById('includeProtocol').checked;
+            if (includeProtocol) {
+                status.textContent = 'Adicionando Protocolo de Entrega...';
+                const protocolDoc = await loadProtocolPDF();
+                if (protocolDoc) {
+                    const protocolPages = await finalPdf.copyPages(protocolDoc, protocolDoc.getPageIndices());
+                    protocolPages.forEach(p => finalPdf.addPage(p));
+                    console.log('✅ Protocolo de Entrega adicionado ao final');
+                } else {
+                    console.warn('⚠️ Protocolo de Entrega não encontrado, continuando sem ele');
+                }
+            }
+
             const finalBytes = await finalPdf.save();
             const blob = new Blob([finalBytes], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
@@ -322,7 +387,8 @@
             a.click();
             URL.revokeObjectURL(url);
 
-            status.innerHTML = `✅ Pronto!<br>Capa criada com placa: <strong>${plate}</strong><br>${processed} arquivo(s) juntados.`;
+            let protocolMsg = includeProtocol ? ' + Protocolo' : '';
+            status.innerHTML = `✅ Pronto!<br>Capa criada com placa: <strong>${plate}</strong><br>${processed} arquivo(s) juntados${protocolMsg}.`;
             status.classList.add('success-message');
         }
 
