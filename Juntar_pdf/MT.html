@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juntar PDFs com Capa - Sintonia Tecnológica</title>
+
+    <link rel="icon" type="image/png" href="favicon.png"> 
+    <link rel="icon" type="image/x-icon" href="favicon.ico"> 
+    <link rel="shortcut icon" href="favicon.ico">
+    
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; background: #f4f6f9; color: #333;
+            min-height: 100vh; display: flex; flex-direction: column;
+        }
+        .container { max-width: 920px; width: 95%; margin: 30px auto; flex-grow: 1; }
+        header { background: #fff; padding: 15px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; }
+        .logo-header { max-height: 42px; }
+        footer { background: #34495e; color: #ecf0f1; text-align: center; padding: 15px 0; margin-top: auto; }
+        .card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 25px; }
+        #drop-area {
+            border: 2px dashed #60BB46; padding: 45px; cursor: pointer;
+            border-radius: 10px; transition: all 0.3s;
+        }
+        #drop-area:hover { border-color: #4a9435; background: #f9fff7; }
+        .btn { padding: 14px 28px; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: #60BB46; width: 100%; font-size: 1.1em; }
+        .btn-primary:hover { background: #4a9435; transform: translateY(-2px); }
+        .btn-clear { background: #e67e22; width: 100%; font-size: 1.1em; margin-top: 10px; }
+        .btn-clear:hover { background: #d35400; transform: translateY(-2px); }
+        .btn-remove { background: #e74c3c; padding: 6px 12px; font-size: 0.85em; }
+        .btn-remove:hover { background: #c0392b; }
+        .file-list { border: 1px solid #ddd; border-radius: 8px; max-height: 320px; overflow-y: auto; }
+        .file-list div { padding: 12px 15px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+        .status-message { margin-top: 20px; font-weight: bold; font-size: 1.05em; }
+        .success-message { color: #1abc9c; }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9fff7;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .checkbox-container input {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #60BB46;
+        }
+        .checkbox-container label {
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            font-size: 1.05em;
+        }
+        .checkbox-container small {
+            color: #666;
+            margin-left: 8px;
+            font-weight: normal;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .button-group .btn {
+            flex: 1;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="https://geld.genesisgroup.com.br/admin/assets/images/logo-dark.png" alt="Sintonia" class="logo-header">
+    </header>
+    <main class="container">
+        <div class="card">
+            <h1>Juntar PDFs Conexão no Campo</h1>
+            <p style="color:#60BB46;">Placa detectada automaticamente</p>
+            <div id="drop-area">
+                <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple hidden>
+                <p style="font-size:1.25em; font-weight:bold;">Arraste os arquivos aqui</p>
+                <p>A placa será preenchida automaticamente no nome do arquivo</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Arquivos Selecionados (<span id="fileCount">0</span>)</h2>
+            <div class="file-list" id="fileList">
+                <div style="text-align:center; color:#777; padding:25px;">Nenhum arquivo selecionado.</div>
+            </div>
+
+            <!-- Checkbox para incluir Capa -->
+            <div class="checkbox-container">
+                <input type="checkbox" id="includeCover" checked>
+                <label for="includeCover">
+                    Incluir Capa Personalizada
+                    <small>(com logo, placa e QR Code)</small>
+                </label>
+            </div>
+
+            <!-- Checkbox para Protocolo de Entrega -->
+            <div class="checkbox-container">
+                <input type="checkbox" id="includeProtocol" checked>
+                <label for="includeProtocol">
+                    Incluir Protocolo de Entrega                    
+                </label>
+            </div>
+
+            <div style="margin:20px 0;">
+                <label for="fileNameInput" style="font-weight:bold; display:block; margin-bottom:8px;">Nome do arquivo final:</label>
+                <input type="text" id="fileNameInput" placeholder="Placa será preenchida automaticamente..." style="width:100%; padding:12px; border:1px solid #ccc; border-radius:6px;">
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="mergePDFs()">Juntar e Baixar</button>
+                <button class="btn btn-clear" onclick="clearAll()">Limpar Tudo</button>
+            </div>
+            <p id="status" class="status-message"></p>
+        </div>
+    </main>
+    <footer><p>Juntar PDF com Capa - Sintonia Tecnológica</p></footer>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        let selectedFiles = [];
+
+        function dataURLtoUint8Array(dataURL) {
+            const byteString = atob(dataURL.split(',')[1]);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+            return ia;
+        }
+
+        async function generateQRDataURL(plate) {
+            return new Promise(resolve => {
+                const div = document.createElement('div');
+                div.style.position = 'absolute'; div.style.left = '-99999px';
+                document.body.appendChild(div);
+                // Mensagem dinâmica com a placa
+                const whatsappMessage = `Verificar placa: ${plate}`;
+                const whatsappUrl = `https://wa.me/5566996538419?text=${encodeURIComponent(whatsappMessage)}`;
+                new QRCode(div, { text: whatsappUrl, width: 260, height: 260 });
+                setTimeout(() => {
+                    const canvas = div.querySelector('canvas');
+                    resolve(canvas ? canvas.toDataURL('image/png') : null);
+                    document.body.removeChild(div);
+                }, 180);
+            });
+        }
+
+        async function extractPlate(pdfBytes) {
+            try {
+                const pdf = await pdfjsLib.getDocument({ data: pdfBytes }).promise;
+                let fullText = '';
+                for (let i = 1; i <= Math.min(4, pdf.numPages); i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    fullText += content.items.map(item => item.str).join(' ') + ' ';
+                }
+                const match = fullText.match(/\b([A-Z]{3}\d[A-Z0-9]\d{2}|[A-Z]{3}[-]?\d{4})\b/i);
+                return match ? match[0].toUpperCase().replace(/[^A-Z0-9]/g, '') : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Preenche automaticamente o nome com a placa
+        async function autoFillFileName() {
+            if (selectedFiles.length === 0) return;
+            const firstFile = selectedFiles[0];
+            if (!firstFile.name.toLowerCase().endsWith('.pdf')) return;
+
+            const status = document.getElementById('status');
+            const fileNameInput = document.getElementById('fileNameInput');
+
+            status.textContent = 'Detectando placa...';
+            try {
+                const bytes = await firstFile.arrayBuffer();
+                const plate = await extractPlate(bytes);
+                if (plate) {
+                    fileNameInput.value = plate;
+                    console.log('✅ Placa detectada:', plate);
+                } else {
+                    fileNameInput.value = '';
+                }
+            } catch (e) {
+                console.warn('Não foi possível extrair placa');
+            }
+            status.textContent = '';
+        }
+
+        async function loadProtocolPDF() {
+            try {
+                const protocolBytes = await fetch('./protocolo.pdf').then(res => {
+                    if (!res.ok) throw new Error('Protocolo não encontrado');
+                    return res.arrayBuffer();
+                });
+                const protocolDoc = await PDFLib.PDFDocument.load(protocolBytes);
+                console.log('✅ Protocolo de Entrega carregado');
+                return protocolDoc;
+            } catch (e) {
+                console.warn('⚠️ Protocolo de Entrega não encontrado:', e);
+                return null;
+            }
+        }
+
+        async function createCoverPDF(plate) {
+            const pdfDoc = await PDFLib.PDFDocument.create();
+            const page = pdfDoc.addPage(PDFLib.PageSizes.A4);
+            const { width, height } = page.getSize();
+            const green = PDFLib.rgb(96/255, 187/255, 70/255);
+
+            // Bordas
+            page.drawRectangle({ x: 25, y: 25, width: width - 50, height: height - 50, borderColor: green, borderWidth: 12 });
+
+            // === Logo Local (tamanho ajustado para 60 de altura) ===
+            let logoLoaded = false;
+            try {
+                const logoBytes = await fetch('./simbolo-genesis-verde.png').then(res => {
+                    if (!res.ok) throw new Error('Logo não encontrada');
+                    return res.arrayBuffer();
+                });
+                const logoImage = await pdfDoc.embedPng(logoBytes);
+                // Ajustar altura para 60, manter proporção
+                const targetHeight = 60;
+                const scale = targetHeight / logoImage.height;
+                const logoW = logoImage.width * scale;
+                const logoH = logoImage.height * scale;
+
+                page.drawImage(logoImage, {
+                    x: (width - logoW) / 2,
+                    y: height - logoH - 50,
+                    width: logoW,
+                    height: logoH
+                });
+                logoLoaded = true;
+                console.log('✅ Logo carregada com sucesso (tamanho 60)');
+            } catch (e) {
+                console.log('⚠️ Logo local não carregada, usando fallback');
+            }
+
+            const boldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+            const regularFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+            // Fallback se a logo não carregar
+            if (!logoLoaded) {
+                page.drawText('GENESIS', { x: width/2 - 110, y: height - 100, size: 52, font: boldFont, color: green });
+                page.drawText('GROUP',   { x: width/2 - 72,  y: height - 145, size: 28, font: boldFont, color: PDFLib.rgb(0.25,0.25,0.25) });
+            }
+
+            // Posições ajustadas para centralização correta
+            const startY = height - 170;
+            
+            // PLACA (centralizado)
+            const plateText = plate || 'SEM PLACA';
+            const plateFontSize = 48;
+            const plateWidth = boldFont.widthOfTextAtSize(plateText, plateFontSize);
+            page.drawText('PLACA', { 
+                x: (width - boldFont.widthOfTextAtSize('PLACA', 24)) / 2, 
+                y: startY, 
+                size: 24, 
+                font: boldFont, 
+                color: green 
+            });
+            
+            page.drawText(plateText, {
+                x: (width - plateWidth) / 2,
+                y: startY - 55,
+                size: plateFontSize,
+                font: boldFont,
+                color: PDFLib.rgb(0, 0, 0)
+            });
+
+            // Data atual (centralizado)
+            const today = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const dateFontSize = 22;
+            const dateWidth = boldFont.widthOfTextAtSize(today, dateFontSize);
+            page.drawText(today, { 
+                x: (width - dateWidth) / 2, 
+                y: startY - 110, 
+                size: dateFontSize, 
+                font: boldFont, 
+                color: PDFLib.rgb(0.35, 0.35, 0.35) 
+            });
+
+            // QR Code e textos (centralizados)
+            const qrSize = 200;
+            const qrY = 160;
+            
+            // Texto acima do QR Code
+            const qrLabel = 'Escaneie o QRCODE para saber sobre agendamentos';
+            const qrLabelSize = 13;
+            const qrLabelWidth = regularFont.widthOfTextAtSize(qrLabel, qrLabelSize);
+            page.drawText(qrLabel, {
+                x: (width - qrLabelWidth) / 2,
+                y: qrY + qrSize + 28,
+                size: qrLabelSize,
+                font: regularFont,
+                color: PDFLib.rgb(0.2, 0.2, 0.2)
+            });
+
+            try {
+                // Gera QR Code com mensagem personalizada da placa
+                const qrData = await generateQRDataURL(plateText);
+                if (qrData) {
+                    const qrImg = await pdfDoc.embedPng(dataURLtoUint8Array(qrData));
+                    page.drawImage(qrImg, { 
+                        x: (width - qrSize) / 2, 
+                        y: qrY, 
+                        width: qrSize, 
+                        height: qrSize 
+                    });
+                }
+            } catch(e) {
+                console.warn('Erro ao gerar QR Code:', e);
+            }
+
+            // Texto abaixo do QR Code
+            const phoneText = 'ou salve o número +55 66 99653-8419';
+            const phoneSize = 13;
+            const phoneWidth = regularFont.widthOfTextAtSize(phoneText, phoneSize);
+            page.drawText(phoneText, {
+                x: (width - phoneWidth) / 2,
+                y: qrY - 28,
+                size: phoneSize,
+                font: boldFont,
+                color: green
+            });
+
+            return pdfDoc;
+        }
+
+        // Função para limpar tudo
+        window.clearAll = () => {
+            // Limpa a lista de arquivos
+            selectedFiles = [];
+            renderFileList();
+            
+            // Limpa o campo de nome do arquivo
+            document.getElementById('fileNameInput').value = '';
+            
+            // Reseta os checkboxes para os valores padrão
+            document.getElementById('includeCover').checked = true;
+            document.getElementById('includeProtocol').checked = true;
+            
+            // Limpa a mensagem de status
+            const status = document.getElementById('status');
+            status.innerHTML = '';
+            status.classList.remove('success-message');
+            
+            // Mostra mensagem temporária de confirmação
+            status.innerHTML = '🗑️ Tudo limpo! Você pode adicionar novos arquivos.';
+            status.style.color = '#e67e22';
+            setTimeout(() => {
+                if (status.innerHTML === '🗑️ Tudo limpo! Você pode adicionar novos arquivos.') {
+                    status.innerHTML = '';
+                }
+            }, 3000);
+            
+            console.log('✅ Todos os arquivos e campos foram limpos');
+        };
+
+        async function mergePDFs() {
+            const status = document.getElementById('status');
+            status.textContent = 'Processando arquivos...';
+            status.classList.remove('success-message');
+
+            if (selectedFiles.length === 0) {
+                status.textContent = 'Selecione pelo menos um arquivo!';
+                return;
+            }
+
+            const finalPdf = await PDFLib.PDFDocument.create();
+
+            // Pega placa para a capa (se necessário)
+            let plate = 'SEM PLACA';
+            if (selectedFiles[0].name.toLowerCase().endsWith('.pdf')) {
+                const bytes = await selectedFiles[0].arrayBuffer();
+                plate = await extractPlate(bytes) || 'SEM PLACA';
+            }
+
+            // Verifica se deve incluir a Capa
+            const includeCover = document.getElementById('includeCover').checked;
+            
+            if (includeCover) {
+                status.textContent = 'Criando capa personalizada...';
+                // Cria capa
+                const coverDoc = await createCoverPDF(plate);
+                const coverPages = await finalPdf.copyPages(coverDoc, coverDoc.getPageIndices());
+                coverPages.forEach(p => finalPdf.addPage(p));
+                console.log('✅ Capa adicionada');
+            } else {
+                console.log('ℹ️ Capa não incluída (usuário optou por não adicionar)');
+            }
+
+            // Adiciona todos os arquivos originais selecionados
+            let processed = 0;
+            for (const file of selectedFiles) {
+                try {
+                    const bytes = await file.arrayBuffer();
+                    if (file.name.toLowerCase().endsWith('.pdf')) {
+                        const doc = await PDFLib.PDFDocument.load(bytes);
+                        const pages = await finalPdf.copyPages(doc, doc.getPageIndices());
+                        pages.forEach(p => finalPdf.addPage(p));
+                    } else {
+                        let img = file.name.toLowerCase().match(/\.(jpe?g)$/i) 
+                            ? await finalPdf.embedJpg(bytes) 
+                            : await finalPdf.embedPng(bytes);
+                        const page = finalPdf.addPage(PDFLib.PageSizes.A4);
+                        const scale = Math.min(page.getWidth() * 0.92 / img.width, page.getHeight() * 0.92 / img.height);
+                        page.drawImage(img, {
+                            x: (page.getWidth() - img.width * scale) / 2,
+                            y: (page.getHeight() - img.height * scale) / 2,
+                            width: img.width * scale,
+                            height: img.height * scale
+                        });
+                    }
+                    processed++;
+                } catch (err) {
+                    console.error('Erro ao adicionar:', file.name);
+                }
+            }
+
+            // Verifica se deve incluir o Protocolo de Entrega
+            const includeProtocol = document.getElementById('includeProtocol').checked;
+            if (includeProtocol) {
+                status.textContent = 'Adicionando Protocolo de Entrega...';
+                const protocolDoc = await loadProtocolPDF();
+                if (protocolDoc) {
+                    const protocolPages = await finalPdf.copyPages(protocolDoc, protocolDoc.getPageIndices());
+                    protocolPages.forEach(p => finalPdf.addPage(p));
+                    console.log('✅ Protocolo de Entrega adicionado ao final');
+                } else {
+                    console.warn('⚠️ Protocolo de Entrega não encontrado, continuando sem ele');
+                }
+            }
+
+            const finalBytes = await finalPdf.save();
+            const blob = new Blob([finalBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            let finalName = document.getElementById('fileNameInput').value.trim();
+            if (!finalName) finalName = plate !== 'SEM PLACA' ? plate : 'Documentos';
+            a.download = finalName + '.pdf';
+            a.href = url;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            let coverMsg = includeCover ? ' + Capa' : '';
+            let protocolMsg = includeProtocol ? ' + Protocolo' : '';
+            status.innerHTML = `✅ Pronto!<br>Placa: <strong>${plate}</strong><br>${processed} arquivo(s) juntados${coverMsg}${protocolMsg}.`;
+            status.classList.add('success-message');
+        }
+
+        function renderFileList() {
+            const list = document.getElementById('fileList');
+            list.innerHTML = '';
+            document.getElementById('fileCount').textContent = selectedFiles.length;
+
+            if (selectedFiles.length === 0) {
+                list.innerHTML = '<div style="text-align:center;color:#777;padding:25px;">Nenhum arquivo selecionado.</div>';
+                return;
+            }
+
+            selectedFiles.forEach((file, i) => {
+                const div = document.createElement('div');
+                div.innerHTML = `${file.name} <small>(${(file.size/1024/1024).toFixed(2)} MB)</small>
+                                 <button class="btn-remove" onclick="removeFile(${i})">Remover</button>`;
+                list.appendChild(div);
+            });
+        }
+
+        window.removeFile = (i) => { 
+            selectedFiles.splice(i, 1); 
+            renderFileList();
+            if (selectedFiles.length > 0) autoFillFileName();
+            else {
+                // Se não houver mais arquivos, limpa o campo de nome
+                document.getElementById('fileNameInput').value = '';
+            }
+        };
+
+        function handleFiles(files) {
+            for (let file of files) {
+                const ext = file.name.toLowerCase();
+                if (ext.endsWith('.pdf') || ext.endsWith('.jpg') || ext.endsWith('.jpeg') || ext.endsWith('.png')) {
+                    selectedFiles.push(file);
+                }
+            }
+            renderFileList();
+            autoFillFileName();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropArea = document.getElementById('drop-area');
+            const fileInput = document.getElementById('fileInput');
+
+            dropArea.addEventListener('click', () => fileInput.click());
+            dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.style.borderColor = '#4a9435'; });
+            dropArea.addEventListener('dragleave', () => dropArea.style.borderColor = '#60BB46');
+            dropArea.addEventListener('drop', e => { e.preventDefault(); handleFiles(e.dataTransfer.files); dropArea.style.borderColor = '#60BB46'; });
+            fileInput.addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
+        });
+    </script>
+</body>
+</html>
